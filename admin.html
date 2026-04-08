@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Admin — Grand Prix Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700;900&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--red:#e10600;--black:#15151e;--dark:#1e1e2a;--panel:#23232f;--border:#2e2e3e;--grey:#8f8f9c;--accent:#e10600;}
+body{font-family:'Titillium Web',sans-serif;background:var(--black);color:#fff;display:flex;flex-direction:column;height:100vh;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:var(--accent);border-radius:3px;}
+header{background:#15151e;border-bottom:3px solid var(--accent);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;flex-shrink:0;}
+.logo-wrap{display:flex;align-items:center;gap:12px;text-decoration:none;}
+.logo-mark{width:36px;height:36px;background:var(--red);display:flex;align-items:center;justify-content:center;clip-path:polygon(0 0,85% 0,100% 50%,85% 100%,0 100%);}
+.logo-mark span{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;color:#fff;}
+.logo-text{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:#fff;text-transform:uppercase;}
+.role-tag{display:flex;align-items:center;gap:8px;background:rgba(225,6,0,.12);border:1px solid rgba(225,6,0,.4);padding:5px 14px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;}
+.header-right{display:flex;align-items:center;gap:12px;}
+.btn-sm{background:none;border:1px solid var(--border);color:var(--grey);padding:5px 14px;cursor:pointer;font-family:'Titillium Web',sans-serif;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;transition:all .2s;text-decoration:none;display:inline-block;}
+.btn-sm:hover{border-color:var(--red);color:var(--red);}
+.dash-body{display:flex;flex:1;overflow:hidden;}
+.sidebar{width:200px;background:#15151e;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+.sb-section{padding:10px 14px 3px;font-size:9px;letter-spacing:.18em;color:var(--grey);text-transform:uppercase;font-weight:700;border-top:1px solid var(--border);margin-top:4px;}
+.sb-section:first-child{border-top:none;margin-top:8px;}
+.sb-link{display:flex;align-items:center;gap:9px;padding:9px 14px;cursor:pointer;font-size:12px;font-weight:600;color:var(--grey);text-decoration:none;border-left:3px solid transparent;transition:all .15s;}
+.sb-link:hover{color:#fff;background:rgba(255,255,255,.03);}
+.sb-link.active{color:#fff;background:rgba(225,6,0,.08);border-left-color:var(--red);}
+.sb-link .ico{font-size:13px;width:18px;text-align:center;}
+main{flex:1;overflow-y:auto;padding:28px;}
+.page{display:none;}.page.active{display:block;}
+.sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;text-transform:uppercase;color:#fff;}
+.sec-title em{color:var(--red);font-style:normal;}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);}
+.db-banner{background:rgba(39,244,210,.06);border:1px solid rgba(39,244,210,.2);border-left:3px solid #27F4D2;padding:9px 14px;font-size:12px;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.db-dot{width:7px;height:7px;border-radius:50%;background:#27F4D2;animation:pulse 2s infinite;flex-shrink:0;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* CRUD TOOLBAR */
+.crud-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.crud-toolbar input,.crud-toolbar select{background:#15151e;border:1px solid var(--border);color:#fff;padding:7px 12px;font-family:'Titillium Web',sans-serif;font-size:12px;outline:none;min-width:0;}
+.crud-toolbar input{flex:1;}
+.crud-toolbar select{width:200px;}
+.btn-add{background:var(--red);color:#fff;border:none;padding:8px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;clip-path:polygon(0 0,93% 0,100% 50%,93% 100%,0 100%);transition:opacity .2s;}
+.btn-add:hover{opacity:.85;}
+.btn-edit{background:rgba(54,113,198,.15);color:#5b9bff;border:1px solid rgba(54,113,198,.35);padding:4px 11px;font-size:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.btn-edit:hover{background:rgba(54,113,198,.3);}
+.btn-del{background:rgba(225,6,0,.12);color:#ff4444;border:1px solid rgba(225,6,0,.3);padding:4px 11px;font-size:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.btn-del:hover{background:rgba(225,6,0,.25);}
+/* DATA TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:12px;}
+.data-table th{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--grey);padding:8px 12px;border-bottom:2px solid var(--red);text-align:left;white-space:nowrap;}
+.data-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:rgba(255,255,255,.8);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.data-table tr:hover td{background:rgba(255,255,255,.025);}
+/* TRIGGERS */
+.trigger-card{background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--grey);padding:18px 22px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;transition:border-color .3s;}
+.trigger-card.enabled{border-left-color:#27f4d2;}
+.tc-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;text-transform:uppercase;color:#fff;margin-bottom:4px;}
+.tc-desc{font-size:12px;color:var(--grey);line-height:1.55;max-width:540px;}
+.toggle-btn{padding:8px 22px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border:1px solid;transition:all .2s;min-width:100px;text-align:center;}
+.toggle-on{background:rgba(39,244,210,.1);color:#27f4d2;border-color:rgba(39,244,210,.35);}
+.toggle-on:hover{background:rgba(39,244,210,.2);}
+.toggle-off{background:rgba(225,6,0,.1);color:#ff4444;border-color:rgba(225,6,0,.35);}
+.toggle-off:hover{background:rgba(225,6,0,.2);}
+/* TXN CONFLICT */
+.txn-card{background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--accent);padding:24px;margin-bottom:20px;}
+.txn-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;text-transform:uppercase;color:#fff;margin-bottom:4px;}
+.txn-nn{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.1em;padding:2px 8px;background:rgba(39,244,210,.08);color:#27f4d2;border:1px solid rgba(39,244,210,.25);margin-bottom:10px;}
+.txn-desc{font-size:12px;color:var(--grey);margin-bottom:16px;line-height:1.55;}
+.txn-field{margin-bottom:11px;}
+.txn-label{font-size:10px;letter-spacing:.12em;color:var(--grey);text-transform:uppercase;display:block;margin-bottom:5px;font-weight:700;}
+.txn-input,.txn-select{width:100%;background:#15151e;border:1px solid #2e2e3e;color:#fff;padding:8px 12px;font-family:'Titillium Web',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+.txn-input:focus,.txn-select:focus{border-color:var(--red);}
+.txn-btn{background:var(--red);color:#fff;border:none;padding:11px 24px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:opacity .2s;}
+.txn-btn:hover{opacity:.85;}.txn-btn:disabled{opacity:.4;cursor:not-allowed;}
+.txn-btn-wide{width:100%;clip-path:polygon(0 0,96% 0,100% 50%,96% 100%,0 100%);}
+.conflict-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
+.txn-side{background:#0d0d14;border:1px solid #1e1e2a;padding:10px;min-height:120px;max-height:240px;overflow-y:auto;}
+.txn-side-label{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
+.step-row{display:flex;gap:8px;padding:4px 8px;background:#0d0d14;border-left:3px solid #2e2e3e;margin-bottom:3px;font-size:11px;color:#8f8f9c;transition:all .3s;}
+.step-ok{border-left-color:#27f4d2;color:#b0f5ee;}.step-err{border-left-color:#ff4444;color:#ff9999;}.step-run{border-left-color:#ff9900;color:#ffcc88;}
+.tl-ok,.tl-info,.tl-err,.tl-warn{padding:2px 0;border-bottom:1px solid #1e1e2a;line-height:1.4;font-size:11px;}
+.tl-ok{color:#27f4d2;}.tl-info{color:#8f8f9c;}.tl-err{color:#ff4444;}.tl-warn{color:#ff9900;}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--red);max-width:560px;width:90%;max-height:80vh;overflow-y:auto;padding:28px;position:relative;}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--grey);font-size:22px;cursor:pointer;}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;text-transform:uppercase;color:#fff;margin-bottom:20px;}
+.modal-field{margin-bottom:12px;}
+.modal-label{font-size:10px;letter-spacing:.12em;color:var(--grey);text-transform:uppercase;display:block;margin-bottom:5px;font-weight:700;}
+.modal-input{width:100%;background:#15151e;border:1px solid var(--border);color:#fff;padding:9px 12px;font-family:'Titillium Web',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+.modal-input:focus{border-color:var(--red);}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+.btn-cancel{background:none;border:1px solid var(--border);color:var(--grey);padding:9px 22px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;transition:all .2s;}
+.btn-cancel:hover{border-color:#fff;color:#fff;}
+.btn-save{background:var(--red);color:#fff;border:none;padding:9px 26px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;clip-path:polygon(0 0,93% 0,100% 50%,93% 100%,0 100%);}
+.btn-save:hover{opacity:.85;}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;z-index:99999;padding:12px 24px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;letter-spacing:.1em;text-transform:uppercase;clip-path:polygon(0 0,96% 0,100% 50%,96% 100%,0 100%);box-shadow:0 4px 20px rgba(0,0,0,.5);transition:opacity .4s;}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="logo-wrap">
+    <div class="logo-mark"><span>GP</span></div>
+    <span class="logo-text">Grand Prix Hub</span>
+  </a>
+  <div class="header-right">
+    <div class="role-tag">⚙ Admin</div>
+    <a href="analyst.html" class="btn-sm">↗ Analytics</a>
+    <a href="team_manager.html" class="btn-sm">↗ Team Mgr</a>
+    <a href="steward.html" class="btn-sm">↗ Steward</a>
+    <button onclick="Auth.logout()" class="btn-sm">Sign Out</button>
+  </div>
+</header>
+
+<div class="dash-body">
+  <nav class="sidebar">
+    <div class="sb-section">Database</div>
+    <a class="sb-link active" onclick="showPage('overview')"><span class="ico">📊</span>Overview</a>
+    <a class="sb-link" onclick="showPage('triggers')"><span class="ico">⚡</span>Triggers</a>
+    <div class="sb-section">CRUD Tables</div>
+    <a class="sb-link" onclick="showCRUD('teams','TEAM')"><span class="ico">🏎️</span>Teams</a>
+    <a class="sb-link" onclick="showCRUD('drivers','DRIVER')"><span class="ico">👤</span>Drivers</a>
+    <a class="sb-link" onclick="showCRUD('driver_contracts','DRIVER_CONTRACT')"><span class="ico">📝</span>Contracts (N:N)</a>
+    <a class="sb-link" onclick="showCRUD('cars','CAR')"><span class="ico">🔩</span>Cars</a>
+    <a class="sb-link" onclick="showCRUD('race_weekends','RACE_WEEKEND')"><span class="ico">🏁</span>Race Weekends</a>
+    <a class="sb-link" onclick="showCRUD('sessions','SESSION')"><span class="ico">🕐</span>Sessions</a>
+    <a class="sb-link" onclick="showCRUD('lap_times','LAP_TIME')"><span class="ico">🔁</span>Lap Times</a>
+    <a class="sb-link" onclick="showCRUD('pit_stops','PIT_STOP')"><span class="ico">🔧</span>Pit Stops</a>
+    <a class="sb-link" onclick="showCRUD('incidents','INCIDENT')"><span class="ico">⚠️</span>Incidents</a>
+    <a class="sb-link" onclick="showCRUD('penalties','PENALTY')"><span class="ico">🚫</span>Penalties (N:N)</a>
+    <a class="sb-link" onclick="showCRUD('stewards','STEWARD')"><span class="ico">⚖️</span>Stewards</a>
+    <div class="sb-section">Task 6</div>
+    <a class="sb-link" onclick="showPage('txn-all')"><span class="ico">🔀</span>All Transactions</a>
+    <a class="sb-link" onclick="showPage('txn-conflict')"><span class="ico">💥</span>Conflict Demo</a>
+  </nav>
+
+  <main>
+    <!-- OVERVIEW -->
+    <div class="page active" id="page-overview">
+      <div class="sec-head"><h2 class="sec-title">Database <em>Overview</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>MySQL · grand_prix_hub · All tables</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:24px;" id="overviewStats"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;color:#fff;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--red);">Quick Links</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            ${['viewer.html → Race Schedule','analyst.html → Analytics','steward.html → Incidents','team_manager.html → Contracts'].map(l=>{const[href,label]=l.split(' → ');return`<a href="${href}" style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--panel);border:1px solid var(--border);text-decoration:none;font-size:13px;color:rgba(255,255,255,.7);transition:all .2s;" onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border)'">${label}</a>`;}).join('')}
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;color:#fff;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--red);">Trigger Status</div>
+          <div id="overviewTriggers"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRIGGERS -->
+    <div class="page" id="page-triggers">
+      <div class="sec-head"><h2 class="sec-title">MySQL <em>Triggers</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>Toggle triggers live — changes take effect immediately in MySQL</div>
+      <div id="triggersContainer"></div>
+    </div>
+
+    <!-- CRUD (dynamic) -->
+    <div class="page" id="page-crud">
+      <div class="sec-head">
+        <h2 class="sec-title" id="crudTitle">Table</h2>
+        <div class="sec-line"></div>
+      </div>
+      <div class="db-banner"><div class="db-dot"></div><span id="crudBannerText">MySQL · table</span></div>
+      <div class="crud-toolbar">
+        <input type="text" id="crudSearch" placeholder="Search…" oninput="filterCrudTable()"/>
+        <button class="btn-add" onclick="openAddModal()">+ Add Row</button>
+        <button onclick="loadCrudTable()" style="background:none;border:1px solid var(--border);color:var(--grey);padding:7px 14px;cursor:pointer;font-size:11px;font-family:'Titillium Web',sans-serif;letter-spacing:.05em;text-transform:uppercase;">⟳ Refresh</button>
+      </div>
+      <div style="overflow-x:auto;"><table class="data-table"><thead id="crudHead"></thead><tbody id="crudBody"></tbody></table></div>
+    </div>
+
+    <!-- ALL TRANSACTIONS -->
+    <div class="page" id="page-txn-all">
+      <div class="sec-head"><h2 class="sec-title">All <em>Transactions</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>All four real MySQL transactions — run from Admin panel</div>
+      <!-- TXN 1 -->
+      <div class="txn-card" style="border-top-color:#FF8000;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div style="width:36px;height:36px;background:rgba(255,128,0,.12);border:1px solid rgba(255,128,0,.3);display:flex;align-items:center;justify-content:center;font-size:18px;">📝</div><div class="txn-title" style="color:#FF8000;">TXN 1 — Sign Driver</div></div>
+        <div class="txn-nn">N:N — DRIVER ↔ TEAM via DRIVER_CONTRACT</div>
+        <div class="txn-desc">SELECT FOR UPDATE on DRIVER + TEAM → DELETE old contract → INSERT new junction row → COMMIT/ROLLBACK</div>
+        <div id="t1_steps" style="margin-bottom:12px;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;">
+          <div class="txn-field"><label class="txn-label">Driver</label><select class="txn-select" id="t1_driver"></select></div>
+          <div class="txn-field"><label class="txn-label">Team</label><select class="txn-select" id="t1_team"></select></div>
+          <div class="txn-field"><label class="txn-label">Start</label><input class="txn-input" type="date" id="t1_start" value="2026-01-01"/></div>
+          <div class="txn-field"><label class="txn-label">End</label><input class="txn-input" type="date" id="t1_end" value="2027-12-31"/></div>
+        </div>
+        <button class="txn-btn" id="t1_btn" onclick="runTxn1()">▶ Execute</button>
+        <div class="tl-info" id="t1_result" style="margin-top:8px;font-size:12px;"></div>
+      </div>
+      <!-- TXN 2 -->
+      <div class="txn-card" style="border-top-color:#ff9900;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div style="width:36px;height:36px;background:rgba(255,153,0,.12);border:1px solid rgba(255,153,0,.3);display:flex;align-items:center;justify-content:center;font-size:18px;">⚠️</div><div class="txn-title" style="color:#ff9900;">TXN 2 — Raise Incident + Penalty</div></div>
+        <div class="txn-nn">N:N — INCIDENT ↔ DRIVER via PENALTY (cascading atomic insert)</div>
+        <div class="txn-desc">BEGIN → INSERT INCIDENT → INSERT PENALTY (FK to incident) → COMMIT. Tick Fail to test rollback.</div>
+        <div id="t2_steps" style="margin-bottom:12px;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;">
+          <div class="txn-field"><label class="txn-label">Session</label><select class="txn-select" id="t2_session"></select></div>
+          <div class="txn-field"><label class="txn-label">Driver</label><select class="txn-select" id="t2_driver"></select></div>
+          <div class="txn-field"><label class="txn-label">Severity</label><select class="txn-select" id="t2_sev"><option>Low</option><option>Medium</option><option selected>High</option></select></div>
+          <div class="txn-field"><label class="txn-label">Penalty</label><select class="txn-select" id="t2_pen"><option>Time Penalty</option><option>Grid Penalty</option><option>Drive-Through</option><option>Reprimand</option><option>DSQ</option></select></div>
+        </div>
+        <div style="display:grid;grid-template-columns:48px 1fr 1fr auto;gap:8px;align-items:end;">
+          <div class="txn-field"><label class="txn-label">Lap</label><input class="txn-input" type="number" id="t2_lap" value="10" min="1"/></div>
+          <div class="txn-field"><label class="txn-label">Description</label><input class="txn-input" type="text" id="t2_desc" placeholder="Incident details…"/></div>
+          <div class="txn-field"><label class="txn-label">Penalty Value</label><input class="txn-input" type="text" id="t2_penval" placeholder="5 seconds"/></div>
+          <div class="txn-field"><label class="txn-label">Fail test</label><input type="checkbox" id="t2_fail" style="accent-color:var(--red);width:20px;height:20px;margin-top:4px;"/></div>
+        </div>
+        <button class="txn-btn" id="t2_btn" onclick="runTxn2()">▶ Execute</button>
+        <div class="tl-info" id="t2_result" style="margin-top:8px;font-size:12px;"></div>
+      </div>
+      <!-- TXN 3 -->
+      <div class="txn-card" style="border-top-color:#FF8000;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div style="width:36px;height:36px;background:rgba(255,128,0,.12);border:1px solid rgba(255,128,0,.3);display:flex;align-items:center;justify-content:center;font-size:18px;">🏁</div><div class="txn-title" style="color:#FF8000;">TXN 3 — Register Race Weekend</div></div>
+        <div class="txn-nn">1:N — RACE_WEEKEND → multiple SESSION rows (atomic multi-insert)</div>
+        <div class="txn-desc">BEGIN → INSERT RACE_WEEKEND → INSERT N sessions → COMMIT. Fail mode proves no orphaned weekend.</div>
+        <div id="t3_steps" style="margin-bottom:12px;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 60px 1fr 1fr;gap:8px;align-items:end;">
+          <div class="txn-field"><label class="txn-label">Race Name</label><input class="txn-input" type="text" id="t3_name" placeholder="Brazilian Grand Prix"/></div>
+          <div class="txn-field"><label class="txn-label">Circuit</label><input class="txn-input" type="text" id="t3_circuit" placeholder="Interlagos, São Paulo"/></div>
+          <div class="txn-field"><label class="txn-label">Flag</label><input class="txn-input" type="text" id="t3_flag" placeholder="🇧🇷" style="font-size:16px;text-align:center"/></div>
+          <div class="txn-field"><label class="txn-label">Start Date</label><input class="txn-input" type="date" id="t3_start"/></div>
+          <div class="txn-field"><label class="txn-label">Race Date</label><input class="txn-input" type="date" id="t3_end"/></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;flex-wrap:wrap;">
+          <span style="font-size:10px;letter-spacing:.12em;color:var(--grey);text-transform:uppercase;font-weight:700;">Sessions:</span>
+          ${['Practice 1','Practice 2','Practice 3','Qualifying','Race'].map(s=>`<label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--red);"> ${s}</label>`).join('')}
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:#ff9900;cursor:pointer;margin-left:8px;"><input type="checkbox" id="t3_fail" style="accent-color:var(--red);"> 🔴 Simulate fail</label>
+        </div>
+        <button class="txn-btn" id="t3_btn" onclick="runTxn3()">▶ Execute</button>
+        <div class="tl-info" id="t3_result" style="margin-top:8px;font-size:12px;"></div>
+      </div>
+    </div>
+
+    <!-- CONFLICT DEMO (Task 6) -->
+    <div class="page" id="page-txn-conflict">
+      <div class="sec-head"><h2 class="sec-title">⚡ Conflicting <em>Transactions</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>Task 6 — Two concurrent MySQL transactions · SELECT FOR UPDATE · Lock contention demo</div>
+
+      <div class="txn-card" style="border-top-color:#ff9900;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="width:40px;height:40px;background:rgba(255,153,0,.12);border:1px solid rgba(255,153,0,.3);display:flex;align-items:center;justify-content:center;font-size:22px;">⚡</div>
+          <div>
+            <div class="txn-title" style="color:#ff9900;">TXN 4 — Concurrent Contract Conflict</div>
+            <div style="font-size:10px;letter-spacing:.1em;color:var(--grey);text-transform:uppercase;margin-top:2px;">SELECT FOR UPDATE · Row-Level Lock · Concurrent Threads</div>
+          </div>
+        </div>
+        <div class="txn-nn" style="background:rgba(255,153,0,.1);color:#ff9900;border-color:rgba(255,153,0,.3);">TASK 6 — CONFLICTING TRANSACTIONS · N:N CONTENTION DEMO</div>
+        <div class="txn-desc" style="font-size:13px;line-height:1.7;">
+          Two real MySQL transactions fire <strong>simultaneously in separate Python threads</strong>, both attempting to sign the same driver to different teams.<br><br>
+          <strong style="color:#27f4d2;">Transaction A</strong> fires first: runs <code>SELECT DriverID … FOR UPDATE</code>, acquiring an exclusive row-level lock on the DRIVER row, then <em>sleeps 1.2 seconds</em> to simulate slow processing while holding the lock.<br><br>
+          <strong style="color:#ff4444;">Transaction B</strong> fires 100ms later: hits the same <code>SELECT … FOR UPDATE</code> — and <strong>blocks</strong> waiting for TXN A to release the lock.<br><br>
+          When TXN A COMMITs, the lock releases. TXN B then proceeds — but our business logic detects the driver was already re-signed by TXN A and issues a <strong>ROLLBACK</strong>.<br><br>
+          Both step logs are shown side by side below so you can see exactly when each transaction blocked, unblocked, and resolved.
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div class="txn-field"><label class="txn-label">Contested Driver</label><select class="txn-select" id="t4_driver"></select></div>
+          <div class="txn-field"><label class="txn-label">Team A — wins the signing</label><select class="txn-select" id="t4_teamA"></select></div>
+          <div class="txn-field"><label class="txn-label">Team B — blocked &amp; rolled back</label><select class="txn-select" id="t4_teamB"></select></div>
+        </div>
+
+        <button class="txn-btn txn-btn-wide" id="t4_btn" onclick="runTxn4()" style="background:linear-gradient(90deg,#e10600,#ff6600);clip-path:none;">
+          ⚡ FIRE CONFLICTING TRANSACTIONS
+        </button>
+
+        <div class="conflict-grid">
+          <div class="txn-side">
+            <div class="txn-side-label" style="color:#27f4d2;">TXN A — Acquires Lock · COMMITs</div>
+            <div id="t4_log_a"><div class="tl-info">Waiting to fire…</div></div>
+          </div>
+          <div class="txn-side">
+            <div class="txn-side-label" style="color:#ff4444;">TXN B — Blocks on Lock · ROLLBACKs</div>
+            <div id="t4_log_b"><div class="tl-info">Waiting to fire…</div></div>
+          </div>
+        </div>
+
+        <div id="t4_summary" style="margin-top:14px;padding:12px 16px;display:none;"></div>
+      </div>
+
+      <div style="background:var(--panel);border:1px solid var(--border);padding:20px;margin-top:0;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;color:#fff;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--red);">How It Works: MySQL Lock Contention</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;color:rgba(255,255,255,.65);line-height:1.7;">
+          <div><strong style="color:#27f4d2;">SELECT … FOR UPDATE</strong><br>Acquires an exclusive row-level lock on the matched rows. Any other transaction trying to read or update those rows with <code>FOR UPDATE</code> will <strong>block</strong> until the first transaction commits or rolls back. This is MySQL's built-in serialization mechanism — it prevents dirty reads and lost updates in concurrent writes.</div>
+          <div><strong style="color:#ff9900;">InnoDB MVCC</strong><br>InnoDB uses Multiversion Concurrency Control — readers don't block writers and writers don't block readers for snapshot reads. But <code>FOR UPDATE</code> explicitly opts into locking. Combined with the <code>REPEATABLE READ</code> isolation level used here, each transaction sees a consistent snapshot from the moment it began, even as other transactions commit.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="modalTitle">Add Row</div>
+    <div id="modalFields"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" id="modalSaveBtn" onclick="saveModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API='http://localhost:5000/api';
+const Auth={
+  get(){return{user:localStorage.getItem('gph_user')||'viewer',role:localStorage.getItem('gph_role')||'viewer'};},
+  clear(){localStorage.removeItem('gph_user');localStorage.removeItem('gph_role');},
+  logout(){Auth.clear();window.location.href='index.html';}
+};
+if(Auth.get().role!=='admin'){window.location.href='login.html';}
+
+async function apiFetch(p,o={}){const r=await fetch(API+p,{credentials:'include',headers:{'Content-Type':'application/json'},...o});const j=await r.json();if(!r.ok)throw Object.assign(new Error(j.error||'API error'),{status:r.status,data:j});return j;}
+function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.sb-link').forEach(a=>a.classList.remove('active'));document.getElementById('page-'+id)?.classList.add('active');event?.currentTarget?.classList.add('active');}
+function renderSteps(id,steps){const el=document.getElementById(id);if(!el)return;el.innerHTML=steps.map(s=>`<div class="step-row step-${s.status||'pending'}"><span style="flex-shrink:0">${s.status==='ok'?'✅':s.status==='error'?'❌':s.status==='run'?'⏳':'○'}</span><span style="flex:1">${s.msg}</span>${s.ts?`<span style="color:#8f8f9c;font-size:10px;white-space:nowrap">${s.ts}</span>`:''}</div>`).join('');}
+function setBtn(id,loading){const b=document.getElementById(id);if(!b)return;if(!b.dataset.orig)b.dataset.orig=b.textContent;b.disabled=loading;b.textContent=loading?'⏳ Executing…':b.dataset.orig;}
+function toast(msg,color='#27f4d2'){const t=document.createElement('div');t.className='toast';t.style.background=color;t.style.color=color==='#27f4d2'?'#000':'#fff';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),400);},2600);}
+
+let currentResource='',currentPK='',currentRows=[],modalEditId=null;
+
+// ── OVERVIEW ───────────────────────────────────────────────────
+async function loadOverview(){
+  try{
+    const [summary,trigStatus]=await Promise.all([apiFetch('/analytics/summary'),apiFetch('/triggers/status')]);
+    document.getElementById('overviewStats').innerHTML=[
+      {v:summary.total_drivers,l:'Drivers'},{v:summary.total_teams,l:'Teams'},
+      {v:summary.total_laps,l:'Lap Records'},{v:summary.total_pit_stops,l:'Pit Stops'},
+      {v:summary.total_incidents,l:'Incidents'},{v:summary.total_penalties,l:'Penalties'},
+    ].map(x=>`<div style="background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--red);padding:16px 18px;"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:30px;color:#fff">${x.v??'—'}</div><div style="font-size:10px;letter-spacing:.12em;color:var(--grey);text-transform:uppercase;margin-top:4px">${x.l}</div></div>`).join('');
+    document.getElementById('overviewTriggers').innerHTML=Object.entries(trigStatus).map(([name,enabled])=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="width:8px;height:8px;border-radius:50%;background:${enabled?'#27f4d2':'#ff4444'}"></div>
+      <span style="font-size:12px;color:rgba(255,255,255,.7);flex:1;font-family:monospace;">${name}</span>
+      <span style="font-size:11px;color:${enabled?'#27f4d2':'#ff4444'};font-weight:700">${enabled?'ON':'OFF'}</span>
+    </div>`).join('');
+  }catch(e){document.getElementById('overviewStats').innerHTML='<div style="color:#ff4444">⚠ Start app.py</div>';}
+}
+
+// ── TRIGGERS ──────────────────────────────────────────────────
+const TRIGGER_INFO={
+  trg_no_duplicate_driver_number:{
+    label:'T1 — Unique Driver Number',
+    desc:'Fires BEFORE INSERT on DRIVER. Counts existing rows with the same DriverNumber and raises SQLSTATE 45000 if a duplicate is found, preventing two drivers from sharing a race number.',
+    table:'DRIVER',event:'BEFORE INSERT',num:1,
+  },
+  trg_auto_contract_end_date:{
+    label:'T2 — Auto EndDate on Contract',
+    desc:'Fires BEFORE INSERT on DRIVER_CONTRACT. If EndDate is NULL, automatically sets it to StartDate + 1 YEAR, ensuring no contract row ever has a missing expiry date.',
+    table:'DRIVER_CONTRACT',event:'BEFORE INSERT',num:2,
+  },
+};
+
+async function loadTriggers(){
+  try{
+    const status=await apiFetch('/triggers/status');
+    document.getElementById('triggersContainer').innerHTML=Object.entries(TRIGGER_INFO).map(([name,info])=>{
+      const enabled=status[name]||false;
+      return`<div class="trigger-card ${enabled?'enabled':''}" id="tc_${name}">
+        <div>
+          <div class="tc-name">${info.label}</div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--grey);text-transform:uppercase;margin-bottom:6px;">${info.event} on ${info.table}</div>
+          <div class="tc-desc">${info.desc}</div>
+        </div>
+        <button class="toggle-btn ${enabled?'toggle-on':'toggle-off'}" onclick="toggleTrigger(${info.num},'${name}')">
+          ${enabled?'✅ ENABLED':'❌ DISABLED'}
+        </button>
+      </div>`;}).join('');
+  }catch(e){}
+}
+
+async function toggleTrigger(num,name){
+  try{
+    const r=await apiFetch('/triggers/'+num+'/toggle',{method:'POST'});
+    toast(r.enabled?'Trigger enabled':'Trigger disabled', r.enabled?'#27f4d2':'#ff4444');
+    loadTriggers();loadOverview();
+  }catch(e){toast('Error: '+e.message,'#ff4444');}
+}
+
+// ── CRUD ──────────────────────────────────────────────────────
+const PK_MAP={teams:'TeamID',drivers:'DriverID',driver_contracts:'ContractID',cars:'CarID',race_weekends:'WeekendID',sessions:'SessionID',lap_times:'LapTimeID',pit_stops:'PitStopID',stewards:'StewardID',incidents:'IncidentID',penalties:'PenaltyID'};
+
+function showCRUD(resource,label){
+  currentResource=resource; currentPK=PK_MAP[resource];
+  document.getElementById('crudTitle').innerHTML=label+' <em>Table</em>';
+  document.getElementById('crudBannerText').textContent='MySQL · '+label+' — click a row to edit, delete button to remove';
+  document.getElementById('crudSearch').value='';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(a=>a.classList.remove('active'));
+  document.getElementById('page-crud').classList.add('active');
+  event?.currentTarget?.classList.add('active');
+  loadCrudTable();
+}
+
+async function loadCrudTable(){
+  try{
+    const rows=await apiFetch('/'+currentResource);
+    currentRows=rows;
+    if(!rows.length){document.getElementById('crudHead').innerHTML='';document.getElementById('crudBody').innerHTML='<tr><td colspan="99" style="color:var(--grey);text-align:center;padding:40px">No rows</td></tr>';return;}
+    const cols=Object.keys(rows[0]);
+    document.getElementById('crudHead').innerHTML='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'<th>Actions</th></tr>';
+    renderCrudRows(rows);
+  }catch(e){document.getElementById('crudBody').innerHTML='<tr><td style="color:#ff4444">Error: '+e.message+'</td></tr>';}
+}
+
+function renderCrudRows(rows){
+  const cols=rows.length?Object.keys(rows[0]):[];
+  document.getElementById('crudBody').innerHTML=rows.map(row=>`<tr>
+    ${cols.map(c=>`<td title="${row[c]??''}">${row[c]??'—'}</td>`).join('')}
+    <td style="white-space:nowrap;">
+      <button class="btn-edit" onclick="openEditModal(${row[currentPK]})">Edit</button>
+      <button class="btn-del" onclick="deleteRow(${row[currentPK]})">Del</button>
+    </td>
+  </tr>`).join('');
+}
+
+function filterCrudTable(){
+  const q=document.getElementById('crudSearch').value.toLowerCase();
+  const filtered=currentRows.filter(r=>Object.values(r).some(v=>String(v||'').toLowerCase().includes(q)));
+  renderCrudRows(filtered);
+}
+
+// Modal
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');modalEditId=null;}
+
+function openAddModal(){
+  if(!currentRows.length){alert('Load table first.');return;}
+  modalEditId=null;
+  const cols=Object.keys(currentRows[0]).filter(c=>c!==currentPK);
+  document.getElementById('modalTitle').textContent='Add Row — '+currentResource;
+  document.getElementById('modalFields').innerHTML=cols.map(c=>`<div class="modal-field"><label class="modal-label">${c}</label><input class="modal-input" id="mf_${c}" placeholder="${c}"/></div>`).join('');
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function openEditModal(id){
+  const row=currentRows.find(r=>r[currentPK]===id||r[currentPK]===String(id));
+  if(!row)return;
+  modalEditId=id;
+  const cols=Object.keys(row).filter(c=>c!==currentPK);
+  document.getElementById('modalTitle').textContent='Edit Row #'+id;
+  document.getElementById('modalFields').innerHTML=cols.map(c=>`<div class="modal-field"><label class="modal-label">${c}</label><input class="modal-input" id="mf_${c}" value="${row[c]??''}"/></div>`).join('');
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+async function saveModal(){
+  if(!currentRows.length)return;
+  const cols=Object.keys(currentRows[0]).filter(c=>c!==currentPK);
+  const data={};cols.forEach(c=>{data[c]=document.getElementById('mf_'+c)?.value||null;});
+  try{
+    if(modalEditId!=null){
+      await apiFetch('/'+currentResource+'/'+modalEditId,{method:'PUT',body:JSON.stringify(data)});
+      toast('Row updated','#27f4d2');
+    }else{
+      const r=await apiFetch('/'+currentResource,{method:'POST',body:JSON.stringify(data)});
+      toast('Row added #'+r.id,'#27f4d2');
+      if(r.t2_fired)toast('⚡ T2 fired — EndDate auto-set','#ff9900');
+    }
+    closeModal();loadCrudTable();
+  }catch(e){toast('Error: '+(e.data?.error||e.message),'#ff4444');}
+}
+
+async function deleteRow(id){
+  if(!confirm('Delete row #'+id+'?'))return;
+  try{
+    await apiFetch('/'+currentResource+'/'+id,{method:'DELETE'});
+    toast('Deleted #'+id,'#ff4444');loadCrudTable();
+  }catch(e){toast('Error: '+(e.data?.error||e.message),'#ff4444');}
+}
+
+// ── TRANSACTION HELPERS ────────────────────────────────────────
+let DB={};
+
+async function loadDropdowns(){
+  const [drivers,teams,sessions]=await Promise.all([apiFetch('/drivers'),apiFetch('/teams'),apiFetch('/sessions')]);
+  DB={drivers,teams,sessions};
+  const dOpts=drivers.map(d=>`<option value="${d.DriverID}">${d.flag} ${d.LastName} (#${d.DriverNumber})</option>`).join('');
+  const tOpts=teams.map(t=>`<option value="${t.TeamID}">${t.emoji} ${t.TeamName.split(' ').slice(0,2).join(' ')}</option>`).join('');
+  const sOpts=sessions.map(s=>`<option value="${s.SessionID}">${s.SessionType} #${s.SessionID}</option>`).join('');
+  ['t1_driver','t2_driver','t4_driver'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=dOpts;});
+  ['t1_team'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=tOpts;});
+  ['t4_teamA'].forEach(id=>{const el=document.getElementById(id);if(el){el.innerHTML=tOpts;el.selectedIndex=0;}});
+  ['t4_teamB'].forEach(id=>{const el=document.getElementById(id);if(el){el.innerHTML=tOpts;el.selectedIndex=1;}});
+  const s2=document.getElementById('t2_session');if(s2)s2.innerHTML=sOpts;
+  // TXN3 default dates
+  const d1=new Date();d1.setDate(d1.getDate()+45);const d2=new Date(d1);d2.setDate(d2.getDate()+2);
+  const fmt=d=>d.toISOString().split('T')[0];
+  const ts=document.getElementById('t3_start'),te=document.getElementById('t3_end');
+  if(ts)ts.value=fmt(d1);if(te)te.value=fmt(d2);
+}
+
+async function runTxn1(){
+  setBtn('t1_btn',true);document.getElementById('t1_steps').innerHTML='';
+  try{
+    const r=await apiFetch('/txn/sign_driver',{method:'POST',body:JSON.stringify({
+      driver_id:Number(document.getElementById('t1_driver').value),
+      team_id:Number(document.getElementById('t1_team').value),
+      start_date:document.getElementById('t1_start').value,
+      end_date:document.getElementById('t1_end').value||null,
+    })});
+    renderSteps('t1_steps',r.steps||[]);
+    const res=document.getElementById('t1_result');res.className='tl-ok';res.textContent='✅ COMMITTED — Contract #'+(r.contract?.ContractID||'?')+' saved'+(r.t2_fired?' · T2 fired (EndDate auto-set)':'');
+    if(r.t2_fired)toast('⚡ T2 fired','#ff9900');
+  }catch(e){
+    const err=e.data||{steps:[],error:e.message};
+    if(err.steps?.length)renderSteps('t1_steps',err.steps);
+    const res=document.getElementById('t1_result');res.className='tl-err';res.textContent='❌ ROLLED BACK — '+(err.error||e.message);
+  }
+  setBtn('t1_btn',false);
+}
+
+async function runTxn2(){
+  setBtn('t2_btn',true);document.getElementById('t2_steps').innerHTML='';
+  try{
+    const r=await apiFetch('/txn/incident_penalty',{method:'POST',body:JSON.stringify({
+      session_id:Number(document.getElementById('t2_session').value),
+      driver_id:Number(document.getElementById('t2_driver').value),
+      lap_no:Number(document.getElementById('t2_lap').value),
+      severity:document.getElementById('t2_sev').value,
+      description:document.getElementById('t2_desc').value||'Incident reported by admin',
+      penalty_type:document.getElementById('t2_pen').value,
+      penalty_value:document.getElementById('t2_penval').value||'—',
+      force_fail:document.getElementById('t2_fail').checked,
+    })});
+    renderSteps('t2_steps',r.steps||[]);
+    const res=document.getElementById('t2_result');res.className='tl-ok';res.textContent='✅ COMMITTED — Incident #'+r.incident_id+' + Penalty #'+r.penalty_id;
+  }catch(e){
+    const err=e.data||{steps:[],error:e.message};
+    if(err.steps?.length)renderSteps('t2_steps',err.steps);
+    const res=document.getElementById('t2_result');res.className='tl-err';res.textContent='❌ ROLLED BACK — '+(err.error||e.message)+(err.rolled_back?' (atomicity confirmed)':'');
+  }
+  setBtn('t2_btn',false);
+}
+
+async function runTxn3(){
+  const checks=document.querySelectorAll('#page-txn-all input[type=checkbox]:not(#t3_fail)');
+  const stypes=['Practice 1','Practice 2','Practice 3','Qualifying','Race'];
+  const selected=stypes.filter((_,i)=>checks[i]?.checked);
+  setBtn('t3_btn',true);document.getElementById('t3_steps').innerHTML='';
+  try{
+    const r=await apiFetch('/txn/register_weekend',{method:'POST',body:JSON.stringify({
+      name:document.getElementById('t3_name').value,
+      circuit:document.getElementById('t3_circuit').value,
+      flag:document.getElementById('t3_flag').value||'🏁',
+      start_date:document.getElementById('t3_start').value,
+      end_date:document.getElementById('t3_end').value,
+      session_types:selected,
+      force_fail:document.getElementById('t3_fail').checked,
+    })});
+    renderSteps('t3_steps',r.steps||[]);
+    const res=document.getElementById('t3_result');res.className='tl-ok';res.textContent='✅ COMMITTED — Weekend #'+r.weekend_id+' + '+r.session_ids?.length+' sessions';
+    loadDropdowns();
+  }catch(e){
+    const err=e.data||{steps:[],error:e.message};
+    if(err.steps?.length)renderSteps('t3_steps',err.steps);
+    const res=document.getElementById('t3_result');res.className='tl-err';res.textContent='❌ ROLLED BACK — '+(err.error||e.message);
+  }
+  setBtn('t3_btn',false);
+}
+
+async function runTxn4(){
+  const driverID=Number(document.getElementById('t4_driver').value);
+  const teamA=Number(document.getElementById('t4_teamA').value);
+  const teamB=Number(document.getElementById('t4_teamB').value);
+  if(teamA===teamB){toast('Team A and B must be different','#ff4444');return;}
+  setBtn('t4_btn',true);
+  document.getElementById('t4_log_a').innerHTML='<div class="tl-warn">⏳ TXN A starting…</div>';
+  document.getElementById('t4_log_b').innerHTML='<div class="tl-warn">⏳ TXN B starting (100ms delay)…</div>';
+  document.getElementById('t4_summary').style.display='none';
+  try{
+    const r=await apiFetch('/txn/conflicting_contracts',{method:'POST',body:JSON.stringify({driver_id:driverID,team_a_id:teamA,team_b_id:teamB})});
+
+    function renderConflictLog(elId,steps){
+      const el=document.getElementById(elId);el.innerHTML='';
+      (steps||[]).forEach(s=>{const d=document.createElement('div');d.style.cssText='padding:2px 0;border-bottom:1px solid #1e1e2a;font-size:11px;line-height:1.4;';d.className=s.status==='ok'?'tl-ok':s.status==='error'?'tl-err':'tl-info';d.textContent=s.msg+(s.ts?' ['+s.ts+']':'');el.appendChild(d);});
+    }
+    renderConflictLog('t4_log_a',r.txn_a?.steps);
+    renderConflictLog('t4_log_b',r.txn_b?.steps);
+
+    const sum=document.getElementById('t4_summary');sum.style.display='block';
+    if(r.winner){sum.style.cssText='margin-top:14px;padding:12px 16px;display:block;background:rgba(39,244,210,.08);border-left:4px solid #27f4d2;color:#27f4d2;font-size:14px;font-weight:700;';sum.textContent='🏆 '+r.summary;}
+    else{sum.style.cssText='margin-top:14px;padding:12px 16px;display:block;background:rgba(255,68,68,.08);border-left:4px solid #ff4444;color:#ff4444;font-size:14px;font-weight:700;';sum.textContent='❌ '+r.summary;}
+  }catch(e){
+    document.getElementById('t4_log_a').innerHTML='<div class="tl-err">Error: '+e.message+'</div>';
+    document.getElementById('t4_log_b').innerHTML='<div class="tl-err">Error: '+e.message+'</div>';
+  }
+  setBtn('t4_btn',false);
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+loadOverview();
+loadTriggers();
+loadDropdowns();
+</script>
+</body>
+</html>

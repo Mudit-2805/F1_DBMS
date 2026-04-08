@@ -1,1321 +1,361 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Grand Prix Hub</title>
-  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700;900&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --red: #e10600; --black: #15151e; --dark: #1e1e2a; --panel: #23232f;
-      --border: #2e2e3e; --white: #ffffff; --grey: #8f8f9c; --light: #f4f4f4;
-    }
-    html { scroll-behavior: smooth; }
-    body { font-family: 'Titillium Web', sans-serif; background: var(--black); color: var(--white); overflow-x: hidden; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--black); }
-    ::-webkit-scrollbar-thumb { background: var(--red); border-radius: 3px; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Grand Prix Hub — The Home of Formula 1 Data</title>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700;900&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--red:#e10600;--black:#15151e;--dark:#1e1e2a;--panel:#23232f;--border:#2e2e3e;--grey:#8f8f9c;}
+html{scroll-behavior:smooth;}
+body{font-family:'Titillium Web',sans-serif;background:var(--black);color:#fff;overflow-x:hidden;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:var(--red);border-radius:3px;}
 
-    header { background: var(--white); padding: 10px 40px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
-    .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-    .logo-icon { width: 48px; height: 48px; background: var(--red); display: flex; align-items: center; justify-content: center; clip-path: polygon(0 0, 85% 0, 100% 50%, 85% 100%, 0 100%); }
-    .logo-icon span { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 18px; color: white; letter-spacing: -1px; }
-    .logo-text { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 22px; color: var(--black); letter-spacing: 0.04em; text-transform: uppercase; }
-    .logo-text span { color: var(--red); }
-    .header-right { display: flex; align-items: center; gap: 20px; }
-    .header-btn { background: var(--red); color: white; border: none; padding: 8px 20px; font-family: 'Titillium Web', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; clip-path: polygon(0 0, 93% 0, 100% 50%, 93% 100%, 0 100%); transition: opacity 0.2s; }
-    .header-btn:hover { opacity: 0.85; }
-    .checkered { height: 22px; background-image: repeating-conic-gradient(#111 0% 25%, #fff 0% 50%); background-size: 22px 22px; }
-    nav { background: var(--white); border-top: 1px solid #eee; }
-    nav ul { list-style: none; display: flex; padding: 0 40px; }
-    nav ul li a { display: block; padding: 13px 18px; text-decoration: none; color: var(--black); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; position: relative; transition: color 0.2s; }
-    nav ul li a::after { content: ''; position: absolute; bottom: 0; left: 18px; right: 18px; height: 3px; background: var(--red); transform: scaleX(0); transition: transform 0.2s; }
-    nav ul li a:hover { color: var(--red); }
-    nav ul li a:hover::after, nav ul li a.active::after { transform: scaleX(1); }
-    nav ul li a.active { color: var(--red); }
-    nav .sep { color: #ccc; padding: 13px 2px; font-size: 16px; }
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(21,21,30,.92);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:64px;transition:background .3s;}
+.nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none;}
+.nav-logo-mark{width:42px;height:42px;background:var(--red);display:flex;align-items:center;justify-content:center;clip-path:polygon(0 0,85% 0,100% 50%,85% 100%,0 100%);}
+.nav-logo-mark span{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:#fff;letter-spacing:-1px;}
+.nav-logo-text{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;color:#fff;text-transform:uppercase;letter-spacing:.04em;}
+.nav-logo-text em{color:var(--red);font-style:normal;}
+.nav-links{display:flex;align-items:center;gap:32px;}
+.nav-links a{color:rgba(255,255,255,.6);text-decoration:none;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;transition:color .2s;}
+.nav-links a:hover{color:#fff;}
+.nav-cta{background:var(--red);color:#fff;border:none;padding:10px 28px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;clip-path:polygon(0 0,93% 0,100% 50%,93% 100%,0 100%);transition:opacity .2s;text-decoration:none;display:inline-flex;align-items:center;}
+.nav-cta:hover{opacity:.85;}
 
-    .hero { position: relative; height: 520px; overflow: hidden; background: #0e0b05; }
-    .hero-bg-fallback { position: absolute; inset: 0; background: linear-gradient(120deg, #1a0a00 0%, #2a1200 40%, #111 100%); }
-    .hero-overlay { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0.4) 100%); z-index: 1; }
-    .hero-content { position: relative; z-index: 2; height: 100%; display: flex; align-items: center; padding: 0 60px; gap: 40px; justify-content: space-between; }
-    .hero-text { max-width: 420px; }
-    .hero-badge { display: inline-block; background: var(--red); color: white; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; padding: 4px 14px; margin-bottom: 16px; clip-path: polygon(0 0, 94% 0, 100% 50%, 94% 100%, 0 100%); }
-    .hero-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 62px; line-height: 0.95; text-transform: uppercase; color: white; text-shadow: 0 2px 20px rgba(0,0,0,0.6); margin-bottom: 16px; }
-    .hero-title span { color: var(--red); }
-    .hero-subtitle { color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.5; margin-bottom: 28px; }
-    .hero-cta { display: inline-block; background: var(--red); color: white; text-decoration: none; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase; padding: 12px 32px; clip-path: polygon(0 0, 94% 0, 100% 50%, 94% 100%, 0 100%); transition: opacity 0.2s, transform 0.2s; }
-    .hero-cta:hover { opacity: 0.9; transform: translateX(3px); }
-    .countdown-box { background: rgba(21,21,30,0.82); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.1); border-top: 3px solid var(--red); padding: 30px 36px 26px; min-width: 300px; z-index: 10; }
-    .countdown-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--grey); margin-bottom: 6px; }
-    .countdown-event { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: 0.05em; text-transform: uppercase; color: white; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
-    .countdown-numbers { display: flex; gap: 6px; align-items: flex-end; }
-    .cd-unit { text-align: center; flex: 1; }
-    .cd-num { display: block; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 50px; color: var(--red); line-height: 1; font-variant-numeric: tabular-nums; }
-    .cd-label { display: block; font-size: 9px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--grey); margin-top: 4px; }
-    .cd-sep { font-family: 'Barlow Condensed', sans-serif; font-size: 36px; color: rgba(255,255,255,0.25); padding-bottom: 10px; font-weight: 700; }
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden;background:#0a0a12;}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,#0d0005 0%,#1a0008 30%,#0a0a18 70%,#050510 100%);}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(225,6,0,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(225,6,0,.03) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 40%,transparent 100%);}
+.hero-glow{position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(225,6,0,.12) 0%,transparent 70%);top:50%;left:55%;transform:translate(-50%,-50%);pointer-events:none;}
+.hero-content{position:relative;z-index:2;width:100%;max-width:1200px;margin:0 auto;padding:0 48px;padding-top:64px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+.hero-tag{display:inline-block;background:rgba(225,6,0,.15);color:var(--red);border:1px solid rgba(225,6,0,.4);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.2em;text-transform:uppercase;padding:5px 14px;margin-bottom:20px;}
+.hero-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:76px;line-height:.92;text-transform:uppercase;color:#fff;margin-bottom:20px;}
+.hero-title .accent{color:var(--red);display:block;}
+.hero-title .thin{font-weight:400;color:rgba(255,255,255,.4);}
+.hero-sub{font-size:15px;color:rgba(255,255,255,.55);line-height:1.65;margin-bottom:36px;max-width:440px;}
+.hero-actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+.btn-primary{background:var(--red);color:#fff;border:none;padding:14px 36px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;clip-path:polygon(0 0,94% 0,100% 50%,94% 100%,0 100%);transition:all .2s;text-decoration:none;display:inline-block;}
+.btn-primary:hover{opacity:.9;transform:translateX(3px);}
+.btn-ghost{background:none;color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);padding:13px 30px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block;}
+.btn-ghost:hover{border-color:rgba(255,255,255,.5);color:#fff;}
+.hero-visual{display:flex;flex-direction:column;gap:16px;position:relative;}
+.speed-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);padding:20px 24px;position:relative;overflow:hidden;transition:transform .2s;}
+.speed-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),transparent);}
+.speed-card:hover{transform:translateX(6px);}
+.sc-label{font-size:10px;letter-spacing:.15em;color:var(--grey);text-transform:uppercase;font-weight:700;margin-bottom:6px;}
+.sc-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;color:#fff;letter-spacing:.02em;}
+.sc-sub{font-size:12px;color:var(--grey);margin-top:2px;}
+.hero-badge{position:absolute;top:-8px;right:24px;background:var(--red);color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:3px 8px;}
 
-    section { padding: 64px 40px; }
-    .section-header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 36px; }
-    .section-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 32px; text-transform: uppercase; letter-spacing: 0.04em; color: white; }
-    .section-title span { color: var(--red); }
-    .section-line { flex: 1; height: 2px; background: linear-gradient(90deg, var(--border) 0%, transparent 100%); }
-    .view-all { color: var(--red); text-decoration: none; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid transparent; transition: border-color 0.2s; white-space: nowrap; }
-    .view-all:hover { border-color: var(--red); }
+/* ── SECTION ── */
+section{padding:80px 48px;}
+.container{max-width:1200px;margin:0 auto;}
+.section-eyebrow{font-size:11px;letter-spacing:.2em;color:var(--red);text-transform:uppercase;font-weight:700;margin-bottom:10px;}
+.section-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:44px;text-transform:uppercase;color:#fff;margin-bottom:14px;line-height:1;}
+.section-title em{color:var(--red);font-style:normal;}
+.section-sub{color:rgba(255,255,255,.5);font-size:14px;line-height:1.6;max-width:540px;}
 
-    .schedule-section { background: var(--dark); }
-    .schedule-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-    .race-card { background: var(--panel); border: 1px solid var(--border); border-top: 3px solid transparent; padding: 20px; cursor: pointer; transition: border-top-color 0.2s, transform 0.2s, box-shadow 0.2s; position: relative; overflow: hidden; }
-    .race-card:hover { border-top-color: var(--red); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-    .race-card.next { border-top-color: var(--red); }
-    .race-card.next::after { content: 'NEXT RACE'; position: absolute; top: 12px; right: 12px; background: var(--red); color: white; font-size: 9px; font-weight: 700; letter-spacing: 0.12em; padding: 3px 8px; }
-    .race-round { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--grey); margin-bottom: 8px; }
-    .race-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 20px; text-transform: uppercase; color: white; margin-bottom: 4px; line-height: 1.1; }
-    .race-circuit { font-size: 12px; color: var(--grey); margin-bottom: 14px; }
-    .race-flag { font-size: 24px; margin-bottom: 10px; display: block; }
-    .race-date { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.8); }
-    .race-date-dot { width: 6px; height: 6px; background: var(--red); border-radius: 50%; }
+/* ── SCHEDULE STRIP ── */
+.schedule-section{background:var(--dark);}
+.race-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:36px;}
+.race-tile{background:var(--panel);border:1px solid var(--border);border-top:2px solid transparent;padding:18px;cursor:pointer;transition:all .2s;position:relative;}
+.race-tile:hover,.race-tile.next-race{border-top-color:var(--red);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.race-tile.next-race::after{content:'NEXT';position:absolute;top:10px;right:10px;background:var(--red);color:#fff;font-size:8px;font-weight:700;letter-spacing:.12em;padding:2px 7px;}
+.rt-flag{font-size:22px;margin-bottom:8px;display:block;}
+.rt-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;text-transform:uppercase;color:#fff;margin-bottom:2px;line-height:1.1;}
+.rt-circuit{font-size:11px;color:var(--grey);margin-bottom:10px;}
+.rt-date{font-size:12px;font-weight:600;color:rgba(255,255,255,.7);}
 
-    .standings-section { background: var(--black); }
-    .standings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    .standings-table { width: 100%; }
-    .standings-tab-header { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: 0.1em; color: white; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid var(--red); display: flex; justify-content: space-between; align-items: center; }
-    .standings-row { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); transition: background 0.15s; gap: 12px; }
-    .standings-row:hover { background: rgba(255,255,255,0.03); }
-    .standing-pos { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 22px; color: var(--grey); text-align: center; }
-    .standing-pos.top3 { color: var(--red); }
-    .standing-info { display: flex; flex-direction: column; gap: 2px; }
-    .standing-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 17px; text-transform: uppercase; color: white; letter-spacing: 0.03em; }
-    .standing-team { font-size: 11px; color: var(--grey); letter-spacing: 0.05em; }
-    .standing-pts { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 22px; color: white; }
-    .standing-pts span { font-size: 11px; font-weight: 600; color: var(--grey); letter-spacing: 0.05em; }
-    .team-color-bar { width: 4px; height: 100%; min-height: 32px; border-radius: 2px; display: inline-block; margin-right: 6px; }
+/* ── DRIVERS STRIP ── */
+.drivers-section{background:var(--black);}
+.driver-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:36px;}
+.driver-tile{background:var(--panel);border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:all .2s;text-align:center;}
+.driver-tile:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.5);}
+.dt-face{height:90px;display:flex;align-items:center;justify-content:center;font-size:40px;position:relative;}
+.dt-number{position:absolute;top:6px;right:8px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;color:rgba(255,255,255,.14);line-height:1;}
+.dt-stripe{height:3px;}
+.dt-info{padding:10px 12px 14px;}
+.dt-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;color:#fff;line-height:1.1;}
+.dt-team{font-size:10px;color:var(--grey);margin-top:3px;}
 
-    .drivers-section { background: var(--dark); }
-    .drivers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
-    .driver-card { background: var(--panel); border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
-    .driver-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.5); }
-    .driver-img { width: 100%; height: 160px; display: flex; align-items: center; justify-content: center; font-size: 48px; position: relative; overflow: hidden; }
-    .driver-num { position: absolute; top: 10px; right: 10px; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 36px; color: rgba(255,255,255,0.18); line-height: 1; }
-    .driver-team-stripe { height: 4px; width: 100%; }
-    .driver-info { padding: 14px; }
-    .driver-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 18px; text-transform: uppercase; color: white; line-height: 1.1; }
-    .driver-team { font-size: 11px; color: var(--grey); margin-top: 3px; letter-spacing: 0.05em; }
-    .driver-flag { font-size: 16px; margin-top: 8px; display: block; }
+/* ── ROLES SECTION ── */
+.roles-section{background:var(--dark);}
+.roles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:36px;}
+.role-card{background:var(--panel);border:1px solid var(--border);padding:28px 20px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;text-decoration:none;display:block;}
+.role-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.5);}
+.role-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;transform:scaleX(0);transform-origin:left;transition:transform .3s;}
+.role-card:hover::after{transform:scaleX(1);}
+.role-icon{font-size:32px;margin-bottom:14px;display:block;}
+.role-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;text-transform:uppercase;color:#fff;margin-bottom:6px;letter-spacing:.04em;}
+.role-desc{font-size:12px;color:var(--grey);line-height:1.5;}
+.role-lock{position:absolute;top:14px;right:14px;font-size:12px;color:var(--grey);}
 
-    .teams-section { background: var(--black); }
-    .teams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-    .team-card { background: var(--panel); border: 1px solid var(--border); padding: 24px 20px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative; overflow: hidden; }
-    .team-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.45); }
-    .team-color-accent { position: absolute; top: 0; left: 0; right: 0; height: 4px; }
-    .team-logo { height: 60px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.04); border-radius: 4px; font-size: 32px; }
-    .team-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 18px; text-transform: uppercase; color: white; letter-spacing: 0.04em; }
-    .team-pts { display: flex; justify-content: space-between; align-items: center; }
-    .team-pts-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 28px; color: white; }
-    .team-pts-label { font-size: 10px; color: var(--grey); letter-spacing: 0.1em; text-transform: uppercase; }
-    .team-pos-badge { background: var(--border); color: var(--grey); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; padding: 2px 10px; letter-spacing: 0.08em; }
+/* ── FOOTER ── */
+footer{background:#0d0d14;border-top:2px solid var(--red);padding:36px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;}
+.footer-logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.04em;}
+.footer-logo em{color:var(--red);font-style:normal;}
+.footer-copy{font-size:12px;color:var(--grey);}
 
-    .results-section { background: var(--dark); }
-    .result-card { background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--red); padding: 20px 24px; margin-bottom: 12px; display: grid; grid-template-columns: 60px 1fr auto; gap: 20px; align-items: center; transition: background 0.15s; cursor: pointer; }
-    .result-card:hover { background: rgba(255,255,255,0.03); }
-    .result-race-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 36px; color: rgba(255,255,255,0.12); text-align: center; }
-    .result-race-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 20px; text-transform: uppercase; color: white; margin-bottom: 4px; }
-    .result-circuit { font-size: 12px; color: var(--grey); margin-bottom: 8px; }
-    .result-podium { display: flex; gap: 16px; }
-    .result-podium-item { display: flex; align-items: center; gap: 6px; }
-    .podium-medal { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 12px; }
-    .p1 { background: #ffd700; color: #000; } .p2 { background: #c0c0c0; color: #000; } .p3 { background: #cd7f32; color: #000; }
-    .podium-name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.8); }
-    .result-date { font-size: 12px; color: var(--grey); text-align: right; white-space: nowrap; }
+/* ── COUNTDOWN BOX ── */
+.countdown{background:rgba(21,21,30,.9);border:1px solid rgba(255,255,255,.08);border-top:2px solid var(--red);padding:24px 28px;backdrop-filter:blur(12px);}
+.cd-row{display:flex;gap:4px;align-items:flex-end;}
+.cd-unit{text-align:center;flex:1;}
+.cd-num{display:block;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:42px;color:var(--red);line-height:1;font-variant-numeric:tabular-nums;}
+.cd-lbl{display:block;font-size:8px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--grey);margin-top:2px;}
+.cd-sep{font-family:'Barlow Condensed',sans-serif;font-size:28px;color:rgba(255,255,255,.2);padding-bottom:8px;font-weight:700;}
 
-    .incidents-section { background: var(--black); }
-    .incident-card { background: var(--panel); border: 1px solid var(--border); border-left: 4px solid #ff9900; padding: 16px 20px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; }
-    .incident-desc { font-size: 14px; color: rgba(255,255,255,0.85); margin-bottom: 4px; }
-    .incident-meta { font-size: 11px; color: var(--grey); }
-    .severity-badge { padding: 4px 10px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
-    .sev-high { background: rgba(225,6,0,0.2); color: #ff4444; border: 1px solid rgba(225,6,0,0.4); }
-    .sev-med  { background: rgba(255,153,0,0.2); color: #ff9900; border: 1px solid rgba(255,153,0,0.4); }
-    .sev-low  { background: rgba(39,244,210,0.1); color: #27f4d2; border: 1px solid rgba(39,244,210,0.3); }
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{opacity:0;animation:fadeUp .6s ease forwards;}
+.fade-in:nth-child(1){animation-delay:.1s}.fade-in:nth-child(2){animation-delay:.2s}.fade-in:nth-child(3){animation-delay:.3s}.fade-in:nth-child(4){animation-delay:.25s}.fade-in:nth-child(5){animation-delay:.35s}.fade-in:nth-child(6){animation-delay:.45s}.fade-in:nth-child(7){animation-delay:.55s}.fade-in:nth-child(8){animation-delay:.65s}
 
-    .pitstops-section { background: var(--dark); }
-    .pitstop-table { width: 100%; border-collapse: collapse; }
-    .pitstop-table th { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--grey); padding: 10px 12px; border-bottom: 2px solid var(--red); text-align: left; }
-    .pitstop-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 13px; color: rgba(255,255,255,0.8); }
-    .pitstop-table tr:hover td { background: rgba(255,255,255,0.02); }
-    .tyre-soft { color: #ff3333; font-weight: 700; } .tyre-medium { color: #ffcc00; font-weight: 700; } .tyre-hard { color: #aaa; font-weight: 700; }
-
-    .laptimes-section { background: var(--black); }
-    .lap-chart { display: flex; flex-direction: column; gap: 8px; }
-    .lap-row { display: grid; grid-template-columns: 50px 1fr 100px; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
-    .lap-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; color: var(--grey); }
-    .lap-bar-wrap { position: relative; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-    .lap-bar { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
-    .lap-time-val { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; color: white; text-align: right; }
-    .fastest-lap .lap-time-val { color: #a020f0; }
-    .fastest-lap .lap-bar { background: #a020f0 !important; }
-
-    .db-banner { background: rgba(39,244,210,0.08); border: 1px solid rgba(39,244,210,0.25); border-left: 4px solid #27F4D2; padding: 12px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: rgba(255,255,255,0.7); }
-    .db-dot { width: 8px; height: 8px; border-radius: 50%; background: #27F4D2; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
-
-    .news-section { background: var(--dark); }
-    .news-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; }
-    .news-card { background: var(--panel); border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-    .news-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.4); }
-    .news-thumb { display: flex; align-items: center; justify-content: center; font-size: 40px; }
-    .news-thumb-lg { height: 200px; background: linear-gradient(135deg,#1e1e2e,#2a1a1a); }
-    .news-thumb-sm { height: 120px; background: linear-gradient(135deg,#1e2a1e,#1a1a2a); }
-    .news-body { padding: 16px; }
-    .news-tag { display: inline-block; background: var(--red); color: white; font-size: 9px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 3px 8px; margin-bottom: 10px; }
-    .news-headline { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 18px; text-transform: uppercase; color: white; line-height: 1.2; margin-bottom: 8px; }
-    .news-card:first-child .news-headline { font-size: 22px; }
-    .news-excerpt { font-size: 13px; color: var(--grey); line-height: 1.5; margin-bottom: 12px; }
-    .news-meta { font-size: 11px; color: var(--grey); display: flex; gap: 12px; }
-
-    footer { background: #0d0d14; border-top: 3px solid var(--red); }
-    .footer-top { padding: 48px 40px; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
-    .footer-desc { font-size: 13px; color: var(--grey); line-height: 1.6; margin-top: 12px; max-width: 260px; }
-    .footer-col-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; color: white; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .footer-links a { color: var(--grey); text-decoration: none; font-size: 13px; transition: color 0.2s; }
-    .footer-links a:hover { color: var(--red); }
-    .footer-bottom { padding: 16px 40px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .footer-copy { font-size: 12px; color: var(--grey); }
-    .footer-socials { display: flex; gap: 12px; }
-    .social-btn { width: 34px; height: 34px; background: var(--panel); border: 1px solid var(--border); color: var(--grey); display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; text-decoration: none; transition: background 0.2s, color 0.2s, border-color 0.2s; }
-    .social-btn:hover { background: var(--red); color: white; border-color: var(--red); }
-
-    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-    .fade-up { opacity: 0; animation: fadeUp 0.6s ease forwards; }
-    .fade-up:nth-child(1){animation-delay:.1s} .fade-up:nth-child(2){animation-delay:.2s} .fade-up:nth-child(3){animation-delay:.3s} .fade-up:nth-child(4){animation-delay:.4s} .fade-up:nth-child(5){animation-delay:.5s} .fade-up:nth-child(6){animation-delay:.6s} .fade-up:nth-child(7){animation-delay:.7s} .fade-up:nth-child(8){animation-delay:.8s}
-
-    @media (max-width: 900px) {
-      .hero-content{flex-direction:column;justify-content:center;padding:40px 24px}
-      .hero-title{font-size:44px}
-      .standings-grid,.news-grid{grid-template-columns:1fr}
-      .footer-top{grid-template-columns:1fr 1fr}
-      section{padding:48px 24px}
-    }
-    @media (max-width: 600px) {
-      header{padding:10px 20px}
-      .footer-top{grid-template-columns:1fr}
-    }
-
-    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; }
-    .modal-overlay.open { display:flex; }
-    .modal { background:var(--panel); border:1px solid var(--border); border-top:3px solid var(--red); max-width:600px; width:90%; max-height:80vh; overflow-y:auto; padding:32px; position:relative; }
-    .modal-close { position:absolute; top:16px; right:16px; background:none; border:none; color:var(--grey); font-size:24px; cursor:pointer; }
-    .modal-close:hover { color:white; }
-    .modal-title { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:28px; text-transform:uppercase; color:white; margin-bottom:20px; }
-    .modal-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:14px; }
-    .modal-label { color:var(--grey); }
-    .modal-val { color:white; font-weight:600; }
-  </style>
+.checkered-bar{height:18px;background-image:repeating-conic-gradient(#111 0% 25%,#222 0% 50%);background-size:18px 18px;}
+@media(max-width:900px){.hero-content{grid-template-columns:1fr}.nav-links{display:none}.hero-title{font-size:52px}section{padding:56px 24px}nav{padding:0 24px}}
+</style>
 </head>
 <body>
 
-<header>
-  <a href="#" class="logo">
-    <div class="logo-icon"><span>GP</span></div>
-    <span class="logo-text">Grand Prix <span>Hub</span></span>
+<nav id="mainNav">
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-mark"><span>GP</span></div>
+    <span class="nav-logo-text">Grand Prix <em>Hub</em></span>
   </a>
-  <div class="header-right">
-    <button class="header-btn">🔴 Live Timing</button>
-    <button class="header-btn" id="adminLoginBtn" onclick="openAdminLogin()" style="background:#1a1a2e;border:1px solid #e10600;clip-path:none;padding:8px 16px;">⚙ Admin</button>
+  <div class="nav-links">
+    <a href="#schedule">Schedule</a>
+    <a href="#drivers">Drivers</a>
+    <a href="#access">Access</a>
+    <a href="#" id="navStatus" style="color:var(--red);display:none;"></a>
   </div>
-</header>
-<div class="checkered"></div>
-<nav>
-  <ul>
-    <li><a href="#schedule" class="active">Races</a></li>
-    <li><span class="sep">|</span></li>
-    <li><a href="#drivers">Drivers</a></li>
-    <li><span class="sep">|</span></li>
-    <li><a href="#teams">Teams</a></li>
-    <li><span class="sep">|</span></li>
-    <li><a href="#standings">Standings</a></li>
-    <li><span class="sep">|</span></li>
-    <li><a href="#results">Results</a></li>
-    <li><span class="sep">|</span></li>
-    <li><a href="#incidents">Incidents</a></li>
-    <li><span class="sep">|</span></li>
-    <li><a href="#pitstops">Pit Stops</a></li>
-    <li><span class="sep">|</span></li>
-    <li><a href="#laptimes">Lap Times</a></li>
-  </ul>
+  <a href="login.html" class="nav-cta" id="navCTA">Sign In →</a>
 </nav>
 
-<section class="hero" style="padding:0;">
-  <div class="hero-bg-fallback"></div>
-  <div class="hero-overlay"></div>
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
   <div class="hero-content">
-    <div class="hero-text">
-      <div class="hero-badge">🏁 2026 Season</div>
-      <h1 class="hero-title">The World's<br><span>Fastest</span><br>Sport</h1>
-      <p class="hero-subtitle">Live standings, race schedules, driver stats and breaking news — powered by MySQL.</p>
-      <a href="#schedule" class="hero-cta">View Race Schedule →</a>
+    <div>
+      <div class="hero-tag">🏁 2026 FIA Formula 1 World Championship</div>
+      <h1 class="hero-title">
+        <span class="thin">The World's</span>
+        <span class="accent">Fastest</span>
+        Sport
+      </h1>
+      <p class="hero-sub">Live standings, race results, driver contracts, incident reports and real-time database transactions — all powered by a live MySQL backend.</p>
+      <div class="hero-actions">
+        <a href="login.html" class="btn-primary" id="heroCTA">Enter the Hub →</a>
+        <a href="#schedule" class="btn-ghost">View Schedule</a>
+      </div>
     </div>
-    <div class="countdown-box">
-      <div class="countdown-title">Next Event In</div>
-      <div class="countdown-event" id="nextEventName">🇦🇺 Australian Grand Prix</div>
-      <div class="countdown-numbers">
-        <div class="cd-unit"><span class="cd-num" id="days">00</span><span class="cd-label">Days</span></div>
-        <div class="cd-sep">:</div>
-        <div class="cd-unit"><span class="cd-num" id="hours">00</span><span class="cd-label">Hrs</span></div>
-        <div class="cd-sep">:</div>
-        <div class="cd-unit"><span class="cd-num" id="minutes">00</span><span class="cd-label">Min</span></div>
-        <div class="cd-sep">:</div>
-        <div class="cd-unit"><span class="cd-num" id="seconds">00</span><span class="cd-label">Sec</span></div>
+    <div class="hero-visual">
+      <div class="countdown" style="margin-bottom:8px;">
+        <div style="font-size:10px;letter-spacing:.15em;color:var(--grey);text-transform:uppercase;font-weight:700;margin-bottom:4px;">Next Race In</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;color:#fff;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.07);" id="nextRaceName">🇦🇺 Australian GP</div>
+        <div class="cd-row">
+          <div class="cd-unit"><span class="cd-num" id="cdDays">00</span><span class="cd-lbl">Days</span></div>
+          <div class="cd-sep">:</div>
+          <div class="cd-unit"><span class="cd-num" id="cdHrs">00</span><span class="cd-lbl">Hrs</span></div>
+          <div class="cd-sep">:</div>
+          <div class="cd-unit"><span class="cd-num" id="cdMin">00</span><span class="cd-lbl">Min</span></div>
+          <div class="cd-sep">:</div>
+          <div class="cd-unit"><span class="cd-num" id="cdSec">00</span><span class="cd-lbl">Sec</span></div>
+        </div>
+      </div>
+      <div class="speed-card fade-in">
+        <div class="sc-label">Season Leaders</div>
+        <div class="sc-val" id="heroLeader">—</div>
+        <div class="sc-sub" id="heroLeaderTeam">Loading from MySQL…</div>
+      </div>
+      <div class="speed-card fade-in">
+        <div class="sc-label">Fastest Pit Stop (Race 1)</div>
+        <div class="sc-val" id="heroPit">—</div>
+        <div class="sc-sub" id="heroPitDriver">Loading from MySQL…</div>
+      </div>
+      <div class="speed-card fade-in">
+        <div class="sc-label">Live Database Status</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+          <div id="dbDot" style="width:8px;height:8px;border-radius:50%;background:#ff4444;"></div>
+          <span id="dbStatus" style="font-size:13px;font-weight:600;color:var(--grey);">Connecting…</span>
+        </div>
       </div>
     </div>
   </div>
 </section>
+<div class="checkered-bar"></div>
 
-<!-- SCHEDULE -->
+<!-- SCHEDULE TEASER -->
 <section class="schedule-section" id="schedule">
-  <div class="section-header">
-    <h2 class="section-title">2026 <span>Race Schedule</span></h2>
-    <div class="section-line"></div>
-    <a href="#" class="view-all">Full Calendar →</a>
-  </div>
-  <div class="db-banner"><div class="db-dot"></div> MySQL · RACE_WEEKEND table · via Flask API</div>
-  <div class="schedule-grid" id="scheduleGrid">Loading...</div>
-</section>
-
-<!-- STANDINGS -->
-<section class="standings-section" id="standings">
-  <div class="section-header">
-    <h2 class="section-title">2026 <span>Standings</span></h2>
-    <div class="section-line"></div>
-  </div>
-  <div class="db-banner"><div class="db-dot"></div> MySQL · DRIVER_CONTRACT + TEAM tables</div>
-  <div class="standings-grid">
-    <div>
-      <div class="standings-tab-header">Drivers Championship</div>
-      <div id="driverStandings">Loading...</div>
-    </div>
-    <div>
-      <div class="standings-tab-header">Constructors Championship</div>
-      <div id="constructorStandings">Loading...</div>
+  <div class="container">
+    <div class="section-eyebrow">2026 Season</div>
+    <h2 class="section-title">Race <em>Schedule</em></h2>
+    <p class="section-sub">Eight rounds across four continents — sign in as a Viewer or above to access full session data.</p>
+    <div class="race-strip" id="raceStrip">
+      <div style="color:var(--grey);font-size:13px;padding:20px 0;">Loading from MySQL…</div>
     </div>
   </div>
 </section>
 
-<!-- DRIVERS -->
+<!-- DRIVERS TEASER -->
 <section class="drivers-section" id="drivers">
-  <div class="section-header">
-    <h2 class="section-title">2026 <span>Drivers</span></h2>
-    <div class="section-line"></div>
-    <a href="#" class="view-all">All Drivers →</a>
-  </div>
-  <div class="db-banner"><div class="db-dot"></div> MySQL · DRIVER + DRIVER_CONTRACT tables</div>
-  <div class="drivers-grid" id="driversGrid">Loading...</div>
-</section>
-
-<!-- TEAMS -->
-<section class="teams-section" id="teams">
-  <div class="section-header">
-    <h2 class="section-title">2026 <span>Teams</span></h2>
-    <div class="section-line"></div>
-  </div>
-  <div class="db-banner"><div class="db-dot"></div> MySQL · TEAM + CAR tables</div>
-  <div class="teams-grid" id="teamsGrid">Loading...</div>
-</section>
-
-<!-- RESULTS -->
-<section class="results-section" id="results">
-  <div class="section-header">
-    <h2 class="section-title">Latest <span>Results</span></h2>
-    <div class="section-line"></div>
-  </div>
-  <div class="db-banner"><div class="db-dot"></div> MySQL · SESSION + LAP_TIME tables</div>
-  <div id="resultsContainer">Loading...</div>
-</section>
-
-<!-- INCIDENTS -->
-<section class="incidents-section" id="incidents">
-  <div class="section-header">
-    <h2 class="section-title">Race <span>Incidents</span></h2>
-    <div class="section-line"></div>
-  </div>
-  <div class="db-banner"><div class="db-dot"></div> MySQL · INCIDENT + PENALTY + STEWARD tables</div>
-  <div id="incidentsContainer">Loading...</div>
-</section>
-
-<!-- PIT STOPS -->
-<section class="pitstops-section" id="pitstops">
-  <div class="section-header">
-    <h2 class="section-title">Pit <span>Stop Analysis</span></h2>
-    <div class="section-line"></div>
-  </div>
-  <div class="db-banner"><div class="db-dot"></div> MySQL · PIT_STOP table</div>
-  <div id="pitstopsContainer">Loading...</div>
-</section>
-
-<!-- LAP TIMES -->
-<section class="laptimes-section" id="laptimes">
-  <div class="section-header">
-    <h2 class="section-title">Lap <span>Time Chart</span></h2>
-    <div class="section-line"></div>
-  </div>
-  <div class="db-banner"><div class="db-dot"></div> MySQL · LAP_TIME table · Race 1 · Verstappen</div>
-  <div id="laptimesContainer">Loading...</div>
-</section>
-
-<!-- NEWS -->
-<section class="news-section" id="news">
-  <div class="section-header">
-    <h2 class="section-title">Latest <span>News</span></h2>
-    <div class="section-line"></div>
-  </div>
-  <div class="news-grid">
-    <div class="news-card">
-      <div class="news-thumb news-thumb-lg">🏎️</div>
-      <div class="news-body">
-        <span class="news-tag">Season Preview</span>
-        <div class="news-headline">2026 Season Preview: New Regulations, New Contenders</div>
-        <p class="news-excerpt">The 2026 Formula 1 season promises a dramatic shake-up as sweeping new technical regulations take effect — smaller cars, new power units, and a renewed battle for supremacy.</p>
-        <div class="news-meta"><span>18 Mar 2026</span><span>· 4 min read</span></div>
-      </div>
+  <div class="container">
+    <div class="section-eyebrow">2026 Grid</div>
+    <h2 class="section-title">The <em>Drivers</em></h2>
+    <p class="section-sub">Eight world-class competitors. Sign in for full contract, lap time and pit stop data.</p>
+    <div class="driver-strip" id="driverStrip">
+      <div style="color:var(--grey);font-size:13px;padding:20px 0;">Loading from MySQL…</div>
     </div>
-    <div class="news-card">
-      <div class="news-thumb news-thumb-sm">🏆</div>
-      <div class="news-body">
-        <span class="news-tag">Driver News</span>
-        <div class="news-headline">Hamilton Targets Title Glory With Ferrari</div>
-        <div class="news-meta"><span>17 Mar 2026</span></div>
-      </div>
-    </div>
-    <div class="news-card">
-      <div class="news-thumb news-thumb-sm">🟠</div>
-      <div class="news-body">
-        <span class="news-tag">Technical</span>
-        <div class="news-headline">McLaren Reveal 2026 Challenger in Papaya</div>
-        <div class="news-meta"><span>16 Mar 2026</span></div>
-      </div>
+  </div>
+</section>
+
+<!-- ACCESS / ROLES -->
+<section class="roles-section" id="access">
+  <div class="container">
+    <div class="section-eyebrow">Multi-Role Access</div>
+    <h2 class="section-title">Choose Your <em>Role</em></h2>
+    <p class="section-sub">Grand Prix Hub features five distinct user profiles, each unlocking different tools and data views.</p>
+    <div class="roles-grid">
+      <a href="login.html?role=viewer" class="role-card" style="border-top:3px solid #8f8f9c;--c:#8f8f9c;">
+        <div class="role-card" style="padding:0;border:none;background:none;">
+          <span class="role-icon">👁</span>
+          <div class="role-name" style="color:#8f8f9c;">Viewer</div>
+          <div class="role-desc">Public race data, standings, driver profiles and schedule — no login required.</div>
+        </div>
+        <div style="position:absolute;inset:0;border-top:3px solid #8f8f9c;pointer-events:none;"></div>
+      </a>
+      <a href="login.html?role=analyst" class="role-card" style="border-top:3px solid #3671C6;">
+        <span class="role-icon">📊</span>
+        <div class="role-name" style="color:#3671C6;">Analyst</div>
+        <div class="role-desc">Live stats dashboard, pit stop rankings, incident severity breakdown and lap analytics.</div>
+        <span class="role-lock">🔒</span>
+      </a>
+      <a href="login.html?role=team_manager" class="role-card" style="border-top:3px solid #FF8000;">
+        <span class="role-icon">🏎️</span>
+        <div class="role-name" style="color:#FF8000;">Team Manager</div>
+        <div class="role-desc">Manage driver contracts (N:N), car assignments and execute atomic signing transactions.</div>
+        <span class="role-lock">🔒</span>
+      </a>
+      <a href="login.html?role=steward" class="role-card" style="border-top:3px solid #ff9900;">
+        <span class="role-icon">⚖️</span>
+        <div class="role-name" style="color:#ff9900;">Race Steward</div>
+        <div class="role-desc">Review incidents, issue penalties and run N:N atomic incident-penalty transactions.</div>
+        <span class="role-lock">🔒</span>
+      </a>
+      <a href="login.html?role=admin" class="role-card" style="border-top:3px solid #e10600;">
+        <span class="role-icon">⚙</span>
+        <div class="role-name" style="color:#e10600;">Admin</div>
+        <div class="role-desc">Full database management, trigger control, conflicting transaction demos and CRUD on all tables.</div>
+        <span class="role-lock">🔒</span>
+      </a>
     </div>
   </div>
 </section>
 
 <footer>
-  <div class="footer-top">
-    <div>
-      <a href="#" class="logo">
-        <div class="logo-icon"><span>GP</span></div>
-        <span class="logo-text" style="color:white">Grand Prix <span>Hub</span></span>
-      </a>
-      <p class="footer-desc">Your ultimate destination for Formula 1 news, standings, race results and driver stats — powered by MySQL + Flask.</p>
-    </div>
-    <div><div class="footer-col-title">Race Info</div><ul class="footer-links"><li><a href="#schedule">Race Schedule</a></li><li><a href="#results">Results</a></li><li><a href="#standings">Standings</a></li></ul></div>
-    <div><div class="footer-col-title">Competitors</div><ul class="footer-links"><li><a href="#drivers">Drivers</a></li><li><a href="#teams">Teams</a></li></ul></div>
-    <div><div class="footer-col-title">Analysis</div><ul class="footer-links"><li><a href="#incidents">Incidents</a></li><li><a href="#pitstops">Pit Stops</a></li><li><a href="#laptimes">Lap Times</a></li></ul></div>
+  <div>
+    <div class="footer-logo">Grand Prix <em>Hub</em></div>
+    <div class="footer-copy" style="margin-top:6px;">Powered by MySQL + Flask · 2026 Season</div>
   </div>
-  <div class="footer-bottom">
-    <span class="footer-copy">© 2026 Grand Prix Hub · Fan-made · Not affiliated with Formula 1</span>
-    <div class="footer-socials">
-      <a href="#" class="social-btn">𝕏</a>
-      <a href="#" class="social-btn">in</a>
-      <a href="#" class="social-btn">▶</a>
-    </div>
-  </div>
+  <div style="font-size:12px;color:var(--grey);">Fan-made · Not affiliated with Formula 1® or FIA</div>
 </footer>
 
-<!-- ═══════════════════════════════════════════════════════
-     ADMIN LOGIN MODAL
-═══════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="adminLoginOverlay" style="z-index:10001;">
-  <div class="modal" style="max-width:400px;border-top-color:#e10600;">
-    <button class="modal-close" onclick="closeAdminLogin()">✕</button>
-    <div class="modal-title" style="font-size:22px;">⚙ Admin Login</div>
-    <div style="margin-bottom:20px;font-size:13px;color:var(--grey);">Enter credentials to access the database admin panel.</div>
-    <div style="display:flex;flex-direction:column;gap:14px;">
-      <div>
-        <label style="font-size:11px;letter-spacing:.1em;color:var(--grey);text-transform:uppercase;display:block;margin-bottom:6px;">Username</label>
-        <input id="adminUser" type="text" placeholder="admin" style="width:100%;background:#15151e;border:1px solid #2e2e3e;color:white;padding:10px 14px;font-family:'Titillium Web',sans-serif;font-size:14px;outline:none;" onkeydown="if(event.key==='Enter')doAdminLogin()"/>
-      </div>
-      <div>
-        <label style="font-size:11px;letter-spacing:.1em;color:var(--grey);text-transform:uppercase;display:block;margin-bottom:6px;">Password</label>
-        <input id="adminPass" type="password" placeholder="••••••••" style="width:100%;background:#15151e;border:1px solid #2e2e3e;color:white;padding:10px 14px;font-family:'Titillium Web',sans-serif;font-size:14px;outline:none;" onkeydown="if(event.key==='Enter')doAdminLogin()"/>
-      </div>
-      <div id="loginError" style="color:#ff4444;font-size:12px;display:none;">Invalid credentials. Try admin / admin123</div>
-      <button onclick="doAdminLogin()" style="background:var(--red);color:white;border:none;padding:12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;">LOGIN →</button>
-      <div style="font-size:11px;color:var(--grey);text-align:center;">Hint: admin / admin123</div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════
-     ADMIN PANEL
-═══════════════════════════════════════════════════════ -->
-<div id="adminPanel" style="display:none;position:fixed;inset:0;background:#0d0d14;z-index:10000;overflow:hidden;font-family:'Titillium Web',sans-serif;">
-  <div style="background:#15151e;border-bottom:3px solid var(--red);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-    <div style="display:flex;align-items:center;gap:16px;">
-      <div style="background:var(--red);color:white;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;padding:6px 14px;clip-path:polygon(0 0,93% 0,100% 50%,93% 100%,0 100%);">⚙ ADMIN</div>
-      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;color:white;text-transform:uppercase;letter-spacing:.05em;">MySQL Management</span>
-      <span id="adminTriggerStatus" style="font-size:11px;color:#27f4d2;background:rgba(39,244,210,.1);border:1px solid rgba(39,244,210,.3);padding:3px 10px;">● TRIGGERS ACTIVE</span>
-    </div>
-    <div style="display:flex;gap:10px;align-items:center;">
-      <span style="font-size:12px;color:var(--grey);">Logged in as <strong style="color:white">admin</strong></span>
-      <button onclick="closeAdmin()" style="background:none;border:1px solid #2e2e3e;color:var(--grey);padding:6px 16px;cursor:pointer;font-family:'Titillium Web',sans-serif;font-size:12px;letter-spacing:.05em;text-transform:uppercase;">✕ Exit</button>
-    </div>
-  </div>
-
-  <div style="display:flex;height:calc(100vh - 59px);">
-    <!-- Sidebar -->
-    <div style="width:180px;background:#15151e;border-right:1px solid #2e2e3e;overflow-y:auto;flex-shrink:0;">
-      <div style="padding:12px 14px 6px;font-size:10px;letter-spacing:.15em;color:#8f8f9c;text-transform:uppercase;font-weight:700;">Tables</div>
-      <div id="adminSidebar"></div>
-      <div style="padding:10px 14px 6px;margin-top:6px;font-size:10px;letter-spacing:.15em;color:#8f8f9c;text-transform:uppercase;font-weight:700;border-top:1px solid #2e2e3e;">DB Triggers</div>
-      <div style="padding:0 8px 8px;">
-        <div id="triggerT1" onclick="toggleTrigger(1)" style="padding:8px 10px;cursor:pointer;border:1px solid #27f4d2;margin-bottom:6px;border-radius:2px;background:rgba(39,244,210,.07);">
-          <div style="font-size:10px;font-weight:700;color:#27f4d2;letter-spacing:.04em;">T1: NO DUPLICATE #</div>
-          <div style="font-size:9px;color:#8f8f9c;margin-top:2px;">BEFORE INSERT · DRIVER</div>
-          <div id="t1status" style="font-size:9px;color:#27f4d2;margin-top:3px;font-weight:700;">● ENABLED</div>
-        </div>
-        <div id="triggerT2" onclick="toggleTrigger(2)" style="padding:8px 10px;cursor:pointer;border:1px solid #27f4d2;border-radius:2px;background:rgba(39,244,210,.07);">
-          <div style="font-size:10px;font-weight:700;color:#27f4d2;letter-spacing:.04em;">T2: AUTO END DATE</div>
-          <div style="font-size:9px;color:#8f8f9c;margin-top:2px;">BEFORE INSERT · CONTRACT</div>
-          <div id="t2status" style="font-size:9px;color:#27f4d2;margin-top:3px;font-weight:700;">● ENABLED</div>
-        </div>
-      </div>
-      <div style="padding:10px 14px 6px;margin-top:4px;font-size:10px;letter-spacing:.15em;color:#8f8f9c;text-transform:uppercase;font-weight:700;border-top:1px solid #2e2e3e;">Trigger Log</div>
-      <div id="triggerLog" style="padding:0 8px 8px;font-size:9px;color:#8f8f9c;max-height:160px;overflow-y:auto;"></div>
-    </div>
-
-    <!-- Main Content -->
-    <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
-      <div style="background:#1e1e2a;border-bottom:1px solid #2e2e3e;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;flex-wrap:wrap;">
-        <span id="adminTableLabel" style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;color:white;text-transform:uppercase;letter-spacing:.05em;">Select a table →</span>
-        <div style="flex:1;"></div>
-        <button id="addRowBtn" onclick="openAddModal()" style="display:none;background:var(--red);color:white;border:none;padding:8px 20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;clip-path:polygon(0 0,94% 0,100% 50%,94% 100%,0 100%);">+ Add Row</button>
-        <div id="adminSearchWrap" style="display:none;position:relative;">
-          <input id="adminSearch" oninput="filterAdminTable()" placeholder="Search…" style="background:#15151e;border:1px solid #2e2e3e;color:white;padding:6px 10px 6px 28px;font-family:'Titillium Web',sans-serif;font-size:12px;outline:none;width:160px;"/>
-          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#8f8f9c;font-size:13px;">🔍</span>
-        </div>
-      </div>
-      <div id="adminNotif" style="display:none;padding:8px 16px;font-size:12px;font-weight:600;letter-spacing:.03em;flex-shrink:0;"></div>
-      <div style="flex:1;overflow:auto;padding:0 16px 16px;">
-        <div id="adminTableWrap" style="padding-top:20px;">
-          <div style="color:#8f8f9c;font-size:14px;padding:60px;text-align:center;border:1px dashed #2e2e3e;margin-top:20px;">
-            Select a table from the sidebar to view and manage data
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Edit / Add Row Modal -->
-<div class="modal-overlay" id="adminRowModal" style="z-index:10002;">
-  <div class="modal" style="max-width:560px;border-top-color:var(--red);">
-    <button class="modal-close" onclick="closeRowModal()">✕</button>
-    <div class="modal-title" id="rowModalTitle" style="font-size:20px;"></div>
-    <div id="rowModalFields" style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px;"></div>
-    <div id="triggerFeedback" style="display:none;background:rgba(39,244,210,.08);border:1px solid rgba(39,244,210,.3);border-left:3px solid #27f4d2;padding:10px 14px;font-size:12px;color:#27f4d2;margin-bottom:14px;"></div>
-    <div style="display:flex;gap:10px;">
-      <button id="rowSaveBtn" onclick="saveRow()" style="flex:1;background:var(--red);color:white;border:none;padding:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;">SAVE</button>
-      <button onclick="closeRowModal()" style="background:none;border:1px solid #2e2e3e;color:#8f8f9c;padding:11px 20px;cursor:pointer;font-family:'Titillium Web',sans-serif;font-size:13px;">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- Delete confirm modal -->
-<div class="modal-overlay" id="adminDeleteModal" style="z-index:10002;">
-  <div class="modal" style="max-width:400px;border-top-color:#ff4444;">
-    <div class="modal-title" style="font-size:20px;color:#ff4444;">⚠ Confirm Delete</div>
-    <p style="color:var(--grey);font-size:14px;margin-bottom:24px;" id="deleteConfirmText">Are you sure you want to delete this record?</p>
-    <div style="display:flex;gap:10px;">
-      <button id="confirmDeleteBtn" style="flex:1;background:#ff4444;color:white;border:none;padding:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;">DELETE</button>
-      <button onclick="closeDeleteModal()" style="background:none;border:1px solid #2e2e3e;color:#8f8f9c;padding:11px 20px;cursor:pointer;font-family:'Titillium Web',sans-serif;font-size:13px;">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- Detail Modal -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-    <div class="modal-title" id="modalTitle"></div>
-    <div id="modalContent"></div>
-  </div>
-</div>
-
 <script>
-// ═══════════════════════════════════════════════════════════════════
-//  API LAYER  — all data now comes from MySQL via the Flask backend
-// ═══════════════════════════════════════════════════════════════════
-
 const API = 'http://localhost:5000/api';
 
-async function apiFetch(path, opts = {}) {
-  const resp = await fetch(API + path, {
-    headers: { 'Content-Type': 'application/json' },
-    ...opts,
-  });
-  const json = await resp.json();
-  if (!resp.ok) throw Object.assign(new Error(json.error || 'API error'), { status: resp.status, data: json });
-  return json;
+// ── If already logged in, update nav ──────────────────────────
+const storedRole = localStorage.getItem('gph_role');
+const storedUser = localStorage.getItem('gph_user');
+if (storedRole && storedRole !== 'viewer') {
+  const pages = {analyst:'analyst.html',team_manager:'team_manager.html',steward:'steward.html',admin:'admin.html',viewer:'viewer.html'};
+  const icons = {analyst:'📊',team_manager:'🏎️',steward:'⚖️',admin:'⚙',viewer:'👁'};
+  const labels = {analyst:'Analyst',team_manager:'Team Mgr',steward:'Steward',admin:'Admin',viewer:'Viewer'};
+  const navCTA = document.getElementById('navCTA');
+  navCTA.textContent = '↗ My Dashboard';
+  navCTA.href = pages[storedRole] || 'viewer.html';
+  document.getElementById('navStatus').style.display='block';
+  document.getElementById('navStatus').textContent = icons[storedRole]+' '+labels[storedRole];
+  document.getElementById('heroCTA').textContent = '↗ Go to Dashboard';
+  document.getElementById('heroCTA').href = pages[storedRole] || 'viewer.html';
 }
 
-async function fetchAll() {
-  const [teams, drivers, contracts, cars, weekends, sessions, lapTimes, pitStops, incidents, penalties, stewards] =
-    await Promise.all([
-      apiFetch('/teams'),
-      apiFetch('/drivers'),
-      apiFetch('/driver_contracts'),
-      apiFetch('/cars'),
-      apiFetch('/race_weekends'),
-      apiFetch('/sessions'),
-      apiFetch('/lap_times'),
-      apiFetch('/pit_stops'),
-      apiFetch('/incidents'),
-      apiFetch('/penalties'),
-      apiFetch('/stewards'),
-    ]);
-  return { teams, drivers, contracts, cars, weekends, sessions, lapTimes, pitStops, incidents, penalties, stewards };
+// ── Countdown ─────────────────────────────────────────────────
+function pad(n){return String(n).padStart(2,'0');}
+function tick(){
+  const diff = new Date('2026-05-01T15:00:00') - new Date();
+  if(diff<=0){document.getElementById('nextRaceName').textContent='🏁 Season Underway!';return;}
+  document.getElementById('cdDays').textContent=pad(Math.floor(diff/86400000));
+  document.getElementById('cdHrs').textContent=pad(Math.floor((diff%86400000)/3600000));
+  document.getElementById('cdMin').textContent=pad(Math.floor((diff%3600000)/60000));
+  document.getElementById('cdSec').textContent=pad(Math.floor((diff%60000)/1000));
 }
+tick(); setInterval(tick,1000);
 
-// Points table (placeholder — season hasn't started yet)
-const POINTS = {
-  driver: [
-    {pos:1,driverID:1,pts:0},{pos:2,driverID:2,pts:0},
-    {pos:3,driverID:4,pts:0},{pos:4,driverID:3,pts:0},
-    {pos:5,driverID:5,pts:0},{pos:6,driverID:6,pts:0},
-  ],
-  constructor: [
-    {pos:1,teamID:1,pts:0},{pos:2,teamID:2,pts:0},
-    {pos:3,teamID:3,pts:0},{pos:4,teamID:4,pts:0},
-    {pos:5,teamID:5,pts:0},{pos:6,teamID:6,pts:0},
-  ],
-};
+// ── Load data from MySQL ───────────────────────────────────────
+(async()=>{
+  // DB health
+  try {
+    const h = await fetch(API+'/health').then(r=>r.json());
+    const dot = document.getElementById('dbDot');
+    const st  = document.getElementById('dbStatus');
+    if(h.status==='ok'){dot.style.background='#27F4D2';st.textContent='Connected · '+h.database;st.style.color='#27F4D2';}
+    else{dot.style.background='#ff4444';st.textContent='Error connecting to MySQL';}
+  } catch(e){
+    document.getElementById('dbStatus').textContent='Cannot reach Flask — run app.py';
+  }
 
-// ═══════════════════════════════════════════════════════════════════
-//  RENDER FUNCTIONS  (identical logic to before, only data source changed)
-// ═══════════════════════════════════════════════════════════════════
+  // Schedule
+  try{
+    const weekends = await fetch(API+'/race_weekends').then(r=>r.json());
+    const today = new Date();
+    const sorted = weekends.map(w=>({...w,_d:new Date(w.EndDate)})).sort((a,b)=>a._d-b._d);
+    const nextIdx = sorted.findIndex(w=>w._d>=today);
+    if(nextIdx>=0) document.getElementById('nextRaceName').textContent=sorted[nextIdx].flag+' '+sorted[nextIdx].name.replace(' Grand Prix',' GP');
+    document.getElementById('raceStrip').innerHTML = sorted.map((w,i)=>`
+      <div class="race-tile fade-in ${i===nextIdx?'next-race':''}">
+        <span class="rt-flag">${w.flag}</span>
+        <div class="rt-name">${w.name.replace(' Grand Prix','<br>Grand Prix')}</div>
+        <div class="rt-circuit">${(w.circuit||'').split(',')[0]}</div>
+        <div class="rt-date">📅 ${new Date(w.EndDate).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div>
+      </div>`).join('');
+  }catch(e){document.getElementById('raceStrip').innerHTML='<div style="color:#ff4444;font-size:13px;">⚠ Start app.py to load schedule</div>';}
 
-function renderSchedule(weekends) {
-  const today = new Date();
-  const sorted = weekends.map(w => ({ ...w, dateObj: new Date(w.EndDate) }))
-    .sort((a, b) => a.dateObj - b.dateObj);
-  const nextIdx = sorted.findIndex(w => w.dateObj >= today);
-
-  if (nextIdx >= 0)
-    document.getElementById('nextEventName').textContent = sorted[nextIdx].flag + ' ' + sorted[nextIdx].name;
-
-  document.getElementById('scheduleGrid').innerHTML = sorted.map((w, i) => `
-    <div class="race-card fade-up ${i === nextIdx ? 'next' : ''}" onclick="showWeekend(${w.WeekendID})">
-      <span class="race-flag">${w.flag}</span>
-      <div class="race-round">Round ${String(w.WeekendID).padStart(2, '0')}</div>
-      <div class="race-name">${w.name}</div>
-      <div class="race-circuit">${w.circuit}</div>
-      <div class="race-date"><span class="race-date-dot"></span>${formatDate(w.EndDate)}</div>
-    </div>`).join('');
-}
-
-function renderDriverStandings(drivers, contracts, teams) {
-  document.getElementById('driverStandings').innerHTML = POINTS.driver.map(p => {
-    const d = drivers.find(x => x.DriverID === p.driverID);
-    const c = contracts.find(x => x.DriverID === p.driverID);
-    const t = c ? teams.find(x => x.TeamID === c.TeamID) : null;
-    if (!d) return '';
-    return `<div class="standings-row" onclick="showDriver(${d.DriverID})">
-      <div class="standing-pos ${p.pos <= 3 ? 'top3' : ''}">${p.pos}</div>
-      <div class="standing-info">
-        <span class="standing-name"><span class="team-color-bar" style="background:${t ? t.color : '#666'}"></span>${d.FirstName} ${d.LastName}</span>
-        <span class="standing-team">${t ? t.TeamName : '—'}</span>
-      </div>
-      <div class="standing-pts">${p.pts} <span>PTS</span></div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('constructorStandings').innerHTML = POINTS.constructor.map(p => {
-    const t = teams.find(x => x.TeamID === p.teamID);
-    if (!t) return '';
-    return `<div class="standings-row">
-      <div class="standing-pos ${p.pos <= 3 ? 'top3' : ''}">${p.pos}</div>
-      <div class="standing-info">
-        <span class="standing-name"><span class="team-color-bar" style="background:${t.color}"></span>${t.TeamName.split(' ')[0]}</span>
-        <span class="standing-team">${t.TeamName}</span>
-      </div>
-      <div class="standing-pts">${p.pts} <span>PTS</span></div>
-    </div>`;
-  }).join('');
-}
-
-function renderDrivers(drivers, contracts, teams) {
-  const emojis = ['🏎️','🏁','🔥','⚡','🎯','🛞','🏆','🌟'];
-  document.getElementById('driversGrid').innerHTML = drivers.map((d, i) => {
-    const c = contracts.find(x => x.DriverID === d.DriverID);
-    const t = c ? teams.find(x => x.TeamID === c.TeamID) : null;
-    return `<div class="driver-card fade-up" onclick="showDriver(${d.DriverID})">
-      <div class="driver-img" style="background:linear-gradient(160deg,${t ? t.color + '22' : '#2a2a3a'} 0%,#1a1a26 100%);">
-        <span style="font-size:52px;">${d.flag}</span>
-        <div class="driver-num">${d.DriverNumber}</div>
-      </div>
-      <div class="driver-team-stripe" style="background:${t ? t.color : '#666'}"></div>
-      <div class="driver-info">
-        <div class="driver-name">${d.FirstName}<br>${d.LastName}</div>
-        <div class="driver-team">${t ? t.TeamName : '—'}</div>
-        <span class="driver-flag">${emojis[i] || '🏎️'}</span>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderTeams(teams, cars) {
-  document.getElementById('teamsGrid').innerHTML = teams.map((t, i) => {
-    const teamCars = cars.filter(c => c.TeamID === t.TeamID);
-    return `<div class="team-card fade-up" onclick="showTeam(${t.TeamID})">
-      <div class="team-color-accent" style="background:${t.color}"></div>
-      <div class="team-logo">${t.emoji}</div>
-      <div class="team-name">${t.TeamName.split(' ').slice(0, 2).join(' ')}</div>
-      <div style="font-size:11px;color:var(--grey);">Cars: ${teamCars.map(c => c.ChassisCode).join(', ') || '—'}</div>
-      <div class="team-pts">
-        <div><div class="team-pts-num">${POINTS.constructor.find(p => p.teamID === t.TeamID)?.pts || 0}</div><div class="team-pts-label">Points</div></div>
-        <div class="team-pos-badge">#${i + 1}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderResults(sessions, weekends, lapTimes, drivers) {
-  const races = sessions.filter(s => s.SessionType === 'Race');
-  if (!races.length) {
-    document.getElementById('resultsContainer').innerHTML = `
-      <div style="color:var(--grey);font-size:14px;text-align:center;padding:40px;border:1px dashed var(--border);">
-        🏁 Race results will appear here once the 2026 season begins (Round 01 — 22 Mar 2026)
+  // Drivers
+  try{
+    const [drivers,contracts,teams]=await Promise.all(['/drivers','/driver_contracts','/teams'].map(p=>fetch(API+p).then(r=>r.json())));
+    const teamColors={'McLaren Formula 1 Team':'#FF8000','Scuderia Ferrari':'#E8002D','Oracle Red Bull Racing':'#3671C6','Mercedes-AMG Petronas F1':'#27F4D2','Aston Martin Aramco F1':'#00A19C','BWT Alpine F1 Team':'#FF69B4'};
+    document.getElementById('driverStrip').innerHTML=drivers.map(d=>{
+      const c=contracts.find(x=>x.DriverID===d.DriverID);
+      const t=c?teams.find(x=>x.TeamID===c.TeamID):null;
+      const col=t?(teamColors[t.TeamName]||t.color||'#666'):'#666';
+      return `<div class="driver-tile fade-in">
+        <div class="dt-face" style="background:linear-gradient(160deg,${col}22 0%,#1a1a26 100%);">
+          <span style="font-size:38px;">${d.flag}</span>
+          <div class="dt-number">${d.DriverNumber}</div>
+        </div>
+        <div class="dt-stripe" style="background:${col}"></div>
+        <div class="dt-info">
+          <div class="dt-name">${d.FirstName}<br>${d.LastName}</div>
+          <div class="dt-team">${t?t.TeamName.split(' ').slice(0,2).join(' '):'—'}</div>
+        </div>
       </div>`;
-    return;
-  }
-  document.getElementById('resultsContainer').innerHTML = races.map(s => {
-    const w = weekends.find(x => x.WeekendID === s.WeekendID);
-    const sessLaps = lapTimes.filter(l => l.SessionID === s.SessionID);
-    const driverLaps = {};
-    sessLaps.forEach(l => { driverLaps[l.DriverID] = (driverLaps[l.DriverID] || 0) + 1; });
-    const top3 = Object.entries(driverLaps).sort((a, b) => b[1] - a[1]).slice(0, 3);
-    return `<div class="result-card">
-      <div class="result-race-num">${String(w?.WeekendID || '').padStart(2, '0')}</div>
-      <div>
-        <div class="result-race-name">${w?.flag || ''} ${w?.name || 'Race'}</div>
-        <div class="result-circuit">${w?.circuit || ''}</div>
-        <div class="result-podium">
-          ${top3.map(([did], i) => {
-            const d = drivers.find(x => x.DriverID == did);
-            return `<div class="result-podium-item"><div class="podium-medal p${i+1}">${i+1}</div><span class="podium-name">${d?.LastName || '—'}</span></div>`;
-          }).join('')}
-        </div>
-      </div>
-      <div class="result-date">${formatDate(s.SessionStartTime)}</div>
-    </div>`;
-  }).join('');
-}
-
-function renderIncidents(incidents, penalties, stewards, sessions, weekends, drivers) {
-  document.getElementById('incidentsContainer').innerHTML = incidents.map(inc => {
-    const s = sessions.find(x => x.SessionID === inc.SessionID);
-    const w = s ? weekends.find(x => x.WeekendID === s.WeekendID) : null;
-    const pen = penalties.find(p => p.IncidentID === inc.IncidentID);
-    const penDriver = pen ? drivers.find(d => d.DriverID === pen.DriverID) : null;
-    const sevClass = inc.Severity === 'High' ? 'sev-high' : inc.Severity === 'Medium' ? 'sev-med' : 'sev-low';
-    return `<div class="incident-card">
-      <div>
-        <div class="incident-desc">${inc.Description}</div>
-        <div class="incident-meta">
-          ${w ? w.flag + ' ' + w.name : ''} · Lap ${inc.LapNo} · ${s ? s.SessionType : ''}
-          ${pen
-            ? ` · <strong style="color:#ff9900">Penalty: ${pen.PenaltyType} (${pen.PenaltyValue})</strong> — ${penDriver ? penDriver.FirstName + ' ' + penDriver.LastName : ''}`
-            : ' · No penalty'}
-        </div>
-      </div>
-      <span class="severity-badge ${sevClass}">${inc.Severity}</span>
-    </div>`;
-  }).join('');
-}
-
-function renderPitStops(pitStops, drivers) {
-  const tc = t => t === 'Soft' ? 'tyre-soft' : t === 'Medium' ? 'tyre-medium' : 'tyre-hard';
-  document.getElementById('pitstopsContainer').innerHTML = `
-    <table class="pitstop-table">
-      <thead><tr><th>Driver</th><th>Pit #</th><th>Lap</th><th>Duration</th><th>Tyre</th></tr></thead>
-      <tbody>
-        ${pitStops.sort((a, b) => a.LapNo - b.LapNo).map(p => {
-          const d = drivers.find(x => x.DriverID === p.DriverID);
-          const secs = (p.DurationMS / 1000).toFixed(3);
-          return `<tr>
-            <td>${d ? d.flag + ' ' + d.FirstName + ' ' + d.LastName : '—'}</td>
-            <td>${p.PitNo}</td><td>${p.LapNo}</td>
-            <td style="font-weight:700;color:${p.DurationMS < 2300 ? '#27F4D2' : 'white'}">${secs}s ${p.DurationMS < 2300 ? '⚡' : ''}</td>
-            <td class="${tc(p.TyreCompound)}">${p.TyreCompound}</td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table>`;
-}
-
-function renderLapTimes(lapTimes, drivers) {
-  const verLaps = lapTimes.filter(l => l.SessionID === 1 && l.DriverID === 1).sort((a, b) => a.LapNo - b.LapNo);
-  if (!verLaps.length) { document.getElementById('laptimesContainer').innerHTML = '<p style="color:var(--grey)">No data</p>'; return; }
-  const toMs = t => { const [m, s] = t.split(':'); return parseFloat(m) * 60000 + parseFloat(s) * 1000; };
-  const times = verLaps.map(l => toMs(l.LapTime));
-  const minT = Math.min(...times), maxT = Math.max(...times);
-  const fastestIdx = times.indexOf(minT);
-  document.getElementById('laptimesContainer').innerHTML = `
-    <div style="margin-bottom:12px;font-size:13px;color:var(--grey)">Verstappen · Australian GP · Race · ${verLaps.length} laps</div>
-    <div class="lap-chart">
-      ${verLaps.map((l, i) => {
-        const pct = 100 - ((times[i] - minT) / (maxT - minT) * 60);
-        const isFast = i === fastestIdx;
-        return `<div class="lap-row ${isFast ? 'fastest-lap' : ''}">
-          <div class="lap-num">L${l.LapNo}</div>
-          <div class="lap-bar-wrap"><div class="lap-bar" style="width:${pct}%;background:${isFast ? '#a020f0' : '#3671C6'};"></div></div>
-          <div class="lap-time-val">${l.LapTime}${isFast ? ' 💜' : ''}</div>
-        </div>`;
-      }).join('')}
-    </div>`;
-}
-
-// ═══════════════════════════════════════════════════════════════════
-//  DETAIL MODALS  (fetch fresh from API each time)
-// ═══════════════════════════════════════════════════════════════════
-
-async function showDriver(id) {
-  const [driver, contracts, teams, pitStops] = await Promise.all([
-    apiFetch(`/drivers/${id}`),
-    apiFetch('/driver_contracts'),
-    apiFetch('/teams'),
-    apiFetch('/pit_stops'),
-  ]);
-  const c = contracts.find(x => x.DriverID === id);
-  const t = c ? teams.find(x => x.TeamID === c.TeamID) : null;
-  const stops = pitStops.filter(x => x.DriverID === id);
-  document.getElementById('modalTitle').textContent = driver.flag + ' ' + driver.FirstName + ' ' + driver.LastName;
-  document.getElementById('modalContent').innerHTML = `
-    ${row('Number', '#' + driver.DriverNumber)}
-    ${row('Nationality', driver.Nationality)}
-    ${row('Date of Birth', driver.DOB)}
-    ${row('Team', t ? `<span style="color:${t.color}">${t.TeamName}</span>` : '—')}
-    ${row('Contract Until', c?.EndDate || '—')}
-    ${row('Pit Stops (Race 1)', stops.length)}
-    ${row('Fastest Pit', stops.length ? Math.min(...stops.map(s => s.DurationMS)) / 1000 + 's' : '—')}`;
-  document.getElementById('modalOverlay').classList.add('open');
-}
-
-async function showTeam(id) {
-  const [teams, cars, contracts, drivers] = await Promise.all([
-    apiFetch('/teams'), apiFetch('/cars'), apiFetch('/driver_contracts'), apiFetch('/drivers'),
-  ]);
-  const t = teams.find(x => x.TeamID === id);
-  const teamCars = cars.filter(c => c.TeamID === id);
-  const driverIDs = contracts.filter(c => c.TeamID === id).map(c => c.DriverID);
-  const teamDrivers = drivers.filter(d => driverIDs.includes(d.DriverID));
-  document.getElementById('modalTitle').textContent = t.emoji + ' ' + t.TeamName;
-  document.getElementById('modalContent').innerHTML = `
-    ${row('Base Country', t.BaseCountry)}
-    ${row('Drivers', teamDrivers.map(d => d.flag + ' ' + d.FirstName + ' ' + d.LastName).join('<br>') || '—')}
-    ${teamCars.map(c => row('Car #' + c.CarNumber, c.ChassisCode)).join('')}
-    ${row('Points', POINTS.constructor.find(p => p.teamID === id)?.pts || 0)}`;
-  document.getElementById('modalOverlay').classList.add('open');
-}
-
-async function showWeekend(id) {
-  const [weekends, sessions] = await Promise.all([apiFetch('/race_weekends'), apiFetch('/sessions')]);
-  const w = weekends.find(x => x.WeekendID === id);
-  const wSessions = sessions.filter(s => s.WeekendID === id);
-  document.getElementById('modalTitle').textContent = w.flag + ' ' + w.name;
-  document.getElementById('modalContent').innerHTML = `
-    ${row('Circuit', w.circuit)}
-    ${row('Start Date', w.StartDate)}
-    ${row('Race Date', w.EndDate)}
-    ${row('Sessions', wSessions.map(s => `${s.SessionType}: ${(s.SessionStartTime || '').split('T')[1]?.slice(0, 5) || 'TBC'}`).join('<br>') || 'TBC')}`;
-  document.getElementById('modalOverlay').classList.add('open');
-}
-
-function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
-document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
-function row(label, val) {
-  return `<div class="modal-row"><span class="modal-label">${label}</span><span class="modal-val">${val}</span></div>`;
-}
-
-// ═══════════════════════════════════════════════════════════════════
-//  COUNTDOWN
-// ═══════════════════════════════════════════════════════════════════
-
-function pad(n) { return String(n).padStart(2, '0'); }
-function tick() {
-  const diff = new Date('2026-03-22T15:00:00') - new Date();
-  if (diff <= 0) { ['days','hours','minutes','seconds'].forEach(id => document.getElementById(id).textContent = '00'); return; }
-  document.getElementById('days').textContent    = pad(Math.floor(diff / 86400000));
-  document.getElementById('hours').textContent   = pad(Math.floor((diff % 86400000) / 3600000));
-  document.getElementById('minutes').textContent = pad(Math.floor((diff % 3600000) / 60000));
-  document.getElementById('seconds').textContent = pad(Math.floor((diff % 60000) / 1000));
-}
-tick(); setInterval(tick, 1000);
-
-// ═══════════════════════════════════════════════════════════════════
-//  ADMIN PANEL
-// ═══════════════════════════════════════════════════════════════════
-
-const ADMIN_USER = 'admin';
-const ADMIN_PASS = 'admin123';
-
-let currentAdminTable = null;
-let adminAllRows      = [];
-let editRowPK         = null;   // null = add mode, otherwise the PK value being edited
-let pendingDeletePK   = null;
-let triggerLogEntries = [];
-
-// Map from admin table name → API endpoint slug & primary key column
-const TABLE_ENDPOINTS = {
-  TEAM:'teams', DRIVER:'drivers', DRIVER_CONTRACT:'driver_contracts',
-  CAR:'cars', RACE_WEEKEND:'race_weekends', SESSION:'sessions',
-  LAP_TIME:'lap_times', PIT_STOP:'pit_stops', STEWARD:'stewards',
-  INCIDENT:'incidents', PENALTY:'penalties',
-};
-const TABLE_PK = {
-  TEAM:'TeamID', DRIVER:'DriverID', DRIVER_CONTRACT:'ContractID',
-  CAR:'CarID', RACE_WEEKEND:'WeekendID', SESSION:'SessionID',
-  LAP_TIME:'LapTimeID', PIT_STOP:'PitStopID', STEWARD:'StewardID',
-  INCIDENT:'IncidentID', PENALTY:'PenaltyID',
-};
-
-const TABLE_SCHEMAS = {
-  TEAM: [
-    {name:'TeamID',type:'number',label:'Team ID',pk:true},
-    {name:'TeamName',type:'text',label:'Team Name'},
-    {name:'BaseCountry',type:'text',label:'Base Country'},
-    {name:'color',type:'color',label:'Color'},
-    {name:'emoji',type:'text',label:'Emoji'},
-  ],
-  DRIVER: [
-    {name:'DriverID',type:'number',label:'Driver ID',pk:true},
-    {name:'DriverNumber',type:'number',label:'Driver Number'},
-    {name:'FirstName',type:'text',label:'First Name'},
-    {name:'LastName',type:'text',label:'Last Name'},
-    {name:'Nationality',type:'text',label:'Nationality'},
-    {name:'DOB',type:'date',label:'Date of Birth'},
-    {name:'flag',type:'text',label:'Flag Emoji'},
-  ],
-  DRIVER_CONTRACT: [
-    {name:'ContractID',type:'number',label:'Contract ID',pk:true},
-    {name:'DriverID',type:'number',label:'Driver ID'},
-    {name:'TeamID',type:'number',label:'Team ID'},
-    {name:'StartDate',type:'date',label:'Start Date'},
-    {name:'EndDate',type:'date',label:'End Date (leave blank → T2 auto-fills)'},
-  ],
-  CAR: [
-    {name:'CarID',type:'number',label:'Car ID',pk:true},
-    {name:'TeamID',type:'number',label:'Team ID'},
-    {name:'CarNumber',type:'number',label:'Car Number'},
-    {name:'ChassisCode',type:'text',label:'Chassis Code'},
-  ],
-  RACE_WEEKEND: [
-    {name:'WeekendID',type:'number',label:'Weekend ID',pk:true},
-    {name:'name',type:'text',label:'Race Name'},
-    {name:'circuit',type:'text',label:'Circuit'},
-    {name:'StartDate',type:'date',label:'Start Date'},
-    {name:'EndDate',type:'date',label:'Race Date'},
-    {name:'flag',type:'text',label:'Flag Emoji'},
-  ],
-  SESSION: [
-    {name:'SessionID',type:'number',label:'Session ID',pk:true},
-    {name:'WeekendID',type:'number',label:'Weekend ID'},
-    {name:'SessionType',type:'select',label:'Session Type',options:['Race','Qualifying','Practice 1','Practice 2','Practice 3','Sprint']},
-    {name:'SessionStartTime',type:'datetime-local',label:'Start Time'},
-    {name:'SessionEndTime',type:'datetime-local',label:'End Time'},
-  ],
-  LAP_TIME: [
-    {name:'LapTimeID',type:'number',label:'Lap Time ID',pk:true},
-    {name:'SessionID',type:'number',label:'Session ID'},
-    {name:'DriverID',type:'number',label:'Driver ID'},
-    {name:'LapNo',type:'number',label:'Lap Number'},
-    {name:'LapTime',type:'text',label:'Lap Time (m:ss.mmm)'},
-  ],
-  PIT_STOP: [
-    {name:'PitStopID',type:'number',label:'Pit Stop ID',pk:true},
-    {name:'SessionID',type:'number',label:'Session ID'},
-    {name:'DriverID',type:'number',label:'Driver ID'},
-    {name:'PitNo',type:'number',label:'Pit #'},
-    {name:'LapNo',type:'number',label:'Lap Number'},
-    {name:'DurationMS',type:'number',label:'Duration (ms)'},
-    {name:'TyreCompound',type:'select',label:'Tyre Compound',options:['Soft','Medium','Hard','Inter','Wet']},
-  ],
-  STEWARD: [
-    {name:'StewardID',type:'number',label:'Steward ID',pk:true},
-    {name:'Name',type:'text',label:'Name'},
-    {name:'Roll',type:'text',label:'Role'},
-  ],
-  INCIDENT: [
-    {name:'IncidentID',type:'number',label:'Incident ID',pk:true},
-    {name:'SessionID',type:'number',label:'Session ID'},
-    {name:'DriverID',type:'number',label:'Driver ID (optional)'},
-    {name:'LapNo',type:'number',label:'Lap Number'},
-    {name:'Description',type:'text',label:'Description'},
-    {name:'Severity',type:'select',label:'Severity',options:['Low','Medium','High']},
-  ],
-  PENALTY: [
-    {name:'PenaltyID',type:'number',label:'Penalty ID',pk:true},
-    {name:'IncidentID',type:'number',label:'Incident ID'},
-    {name:'DriverID',type:'number',label:'Driver ID'},
-    {name:'PenaltyType',type:'select',label:'Penalty Type',options:['Time Penalty','Grid Penalty','Drive-Through','Stop-Go','DSQ','Reprimand']},
-    {name:'PenaltyValue',type:'text',label:'Penalty Value'},
-    {name:'Status',type:'select',label:'Status',options:['Pending','Applied','Overturned']},
-  ],
-};
-
-const TABLE_ICONS = {
-  TEAM:'🏎️',DRIVER:'👤',DRIVER_CONTRACT:'📝',CAR:'🔩',RACE_WEEKEND:'🏁',
-  SESSION:'⏱️',LAP_TIME:'🕒',PIT_STOP:'🔧',STEWARD:'⚖️',INCIDENT:'⚠️',PENALTY:'🚫'
-};
-
-// ── Login ──────────────────────────────────────────────────────────
-function openAdminLogin() {
-  document.getElementById('adminLoginOverlay').classList.add('open');
-  setTimeout(() => document.getElementById('adminUser').focus(), 100);
-}
-function closeAdminLogin() { document.getElementById('adminLoginOverlay').classList.remove('open'); }
-function doAdminLogin() {
-  if (document.getElementById('adminUser').value.trim() === ADMIN_USER &&
-      document.getElementById('adminPass').value === ADMIN_PASS) {
-    closeAdminLogin();
-    openAdmin();
-  } else {
-    document.getElementById('loginError').style.display = 'block';
-    document.getElementById('adminPass').value = '';
-  }
-}
-
-async function openAdmin() {
-  buildAdminSidebar();
-  document.getElementById('adminPanel').style.display = 'flex';
-  document.getElementById('adminLoginBtn').textContent = '⚙ Admin ●';
-  document.getElementById('adminLoginBtn').style.color = '#27f4d2';
-  await refreshTriggerStatus();
-}
-function closeAdmin() {
-  document.getElementById('adminPanel').style.display = 'none';
-  document.getElementById('adminLoginBtn').textContent = '⚙ Admin';
-  document.getElementById('adminLoginBtn').style.color = '';
-}
-
-// ── Sidebar ────────────────────────────────────────────────────────
-function buildAdminSidebar() {
-  document.getElementById('adminSidebar').innerHTML = Object.keys(TABLE_SCHEMAS).map(t => `
-    <div onclick="loadAdminTable('${t}')" id="sidebar_${t}" style="padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:7px;font-size:11px;font-weight:600;color:#8f8f9c;transition:all .15s;border-left:3px solid transparent;">
-      <span style="font-size:12px;">${TABLE_ICONS[t] || '📋'}</span><span>${t}</span>
-    </div>`).join('');
-}
-
-async function loadAdminTable(tableName) {
-  currentAdminTable = tableName;
-  document.querySelectorAll('[id^="sidebar_"]').forEach(el => {
-    el.style.color = '#8f8f9c'; el.style.borderLeftColor = 'transparent'; el.style.background = 'transparent';
-  });
-  const active = document.getElementById('sidebar_' + tableName);
-  if (active) { active.style.color = 'white'; active.style.borderLeftColor = 'var(--red)'; active.style.background = 'rgba(225,6,0,.08)'; }
-  document.getElementById('adminTableLabel').textContent = `${TABLE_ICONS[tableName] || ''} ${tableName}`;
-  document.getElementById('addRowBtn').style.display = 'inline-block';
-  document.getElementById('adminSearchWrap').style.display = 'block';
-  document.getElementById('adminSearch').value = '';
-  document.getElementById('adminTableWrap').innerHTML = '<div style="padding:40px;text-align:center;color:#8f8f9c;">Loading from MySQL…</div>';
-
-  try {
-    adminAllRows = await apiFetch('/' + TABLE_ENDPOINTS[tableName]);
-    renderAdminTable(adminAllRows);
-  } catch (e) {
-    document.getElementById('adminTableWrap').innerHTML = `<div style="padding:40px;color:#ff4444;">Error: ${e.message}</div>`;
-  }
-}
-
-function renderAdminTable(rows) {
-  const schema = TABLE_SCHEMAS[currentAdminTable];
-  const pk = TABLE_PK[currentAdminTable];
-  const cols = schema.map(f => f.name);
-
-  const thead = `<tr style="background:#1e1e2a;">${cols.map(c =>
-    `<th style="padding:8px 10px;text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8f8f9c;border-bottom:2px solid var(--red);white-space:nowrap;">${c}</th>`
-  ).join('')}<th style="padding:8px 10px;border-bottom:2px solid var(--red);color:#8f8f9c;font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;">Actions</th></tr>`;
-
-  const tbody = rows.length ? rows.map(row => {
-    const pkVal = row[pk];
-    const cells = cols.map(c => {
-      let v = row[c] !== undefined && row[c] !== null ? row[c] : '—';
-      if (typeof v === 'string' && v.length > 40) v = v.substring(0, 38) + '…';
-      return `<td style="padding:8px 10px;font-size:12px;color:rgba(255,255,255,.8);border-bottom:1px solid #2e2e3e;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v}</td>`;
     }).join('');
-    return `<tr onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background='transparent'">
-      ${cells}
-      <td style="padding:8px 10px;border-bottom:1px solid #2e2e3e;white-space:nowrap;">
-        <button onclick="openEditModal(${pkVal})" style="background:none;border:1px solid #3671C6;color:#3671C6;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:700;margin-right:6px;">EDIT</button>
-        <button onclick="confirmDelete(${pkVal})" style="background:none;border:1px solid #ff4444;color:#ff4444;padding:4px 12px;cursor:pointer;font-size:11px;font-weight:700;">DEL</button>
-      </td>
-    </tr>`;
-  }).join('') : `<tr><td colspan="${cols.length + 1}" style="padding:40px;text-align:center;color:#8f8f9c;border-bottom:1px solid #2e2e3e;">No records found</td></tr>`;
+    // Leader card
+    if(drivers[0]){document.getElementById('heroLeader').textContent=drivers[0].FirstName+' '+drivers[0].LastName;document.getElementById('heroLeaderTeam').textContent='2026 Championship Leader';}
+  }catch(e){}
 
-  document.getElementById('adminTableWrap').innerHTML = `
-    <div style="font-size:12px;color:#8f8f9c;margin-bottom:10px;">${rows.length} record${rows.length !== 1 ? 's' : ''} · ${currentAdminTable} · MySQL</div>
-    <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
-}
-
-function filterAdminTable() {
-  const q = document.getElementById('adminSearch').value.toLowerCase();
-  const filtered = q ? adminAllRows.filter(row => Object.values(row).some(v => String(v).toLowerCase().includes(q))) : adminAllRows;
-  renderAdminTable(filtered);
-}
-
-// ── Add / Edit modals ──────────────────────────────────────────────
-function openAddModal() {
-  editRowPK = null;
-  document.getElementById('rowModalTitle').textContent = `➕ Add Row — ${currentAdminTable}`;
-  buildRowForm({});
-  document.getElementById('triggerFeedback').style.display = 'none';
-  document.getElementById('adminRowModal').classList.add('open');
-}
-
-async function openEditModal(pkVal) {
-  editRowPK = pkVal;
-  try {
-    const row = await apiFetch('/' + TABLE_ENDPOINTS[currentAdminTable] + '/' + pkVal);
-    document.getElementById('rowModalTitle').textContent = `✏️ Edit Row — ${currentAdminTable}`;
-    buildRowForm(row);
-    document.getElementById('triggerFeedback').style.display = 'none';
-    document.getElementById('adminRowModal').classList.add('open');
-  } catch (e) {
-    showAdminNotif('🔴 Could not load row: ' + e.message, 'error');
-  }
-}
-
-function buildRowForm(data) {
-  document.getElementById('rowModalFields').innerHTML = TABLE_SCHEMAS[currentAdminTable].map(f => {
-    const val = data[f.name] !== undefined && data[f.name] !== null ? data[f.name] : '';
-    let input;
-    if (f.type === 'select') {
-      input = `<select id="field_${f.name}" style="width:100%;background:#15151e;border:1px solid #2e2e3e;color:white;padding:9px 12px;font-family:'Titillium Web',sans-serif;font-size:13px;outline:none;">
-        ${f.options.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o}</option>`).join('')}
-      </select>`;
-    } else {
-      input = `<input id="field_${f.name}" type="${f.type}" value="${val}" style="width:100%;background:#15151e;border:1px solid #2e2e3e;color:white;padding:9px 12px;font-family:'Titillium Web',sans-serif;font-size:13px;outline:none;"/>`;
+  // Pit stop hero
+  try{
+    const pits=await fetch(API+'/pit_stops').then(r=>r.json());
+    const drivers=await fetch(API+'/drivers').then(r=>r.json());
+    if(pits.length){
+      const best=pits.reduce((a,b)=>a.DurationMS<b.DurationMS?a:b);
+      document.getElementById('heroPit').textContent=(best.DurationMS/1000).toFixed(3)+'s';
+      const d=drivers.find(x=>x.DriverID===best.DriverID);
+      document.getElementById('heroPitDriver').textContent=d?d.flag+' '+d.FirstName+' '+d.LastName:'—';
     }
-    return `<div>
-      <label style="font-size:11px;letter-spacing:.1em;color:#8f8f9c;text-transform:uppercase;display:block;margin-bottom:5px;">${f.label}${f.pk ? ' <span style="color:var(--red)">PK</span>' : ''}</label>
-      ${input}
-    </div>`;
-  }).join('');
-}
-
-function getFormData() {
-  const obj = {};
-  TABLE_SCHEMAS[currentAdminTable].forEach(f => {
-    const el = document.getElementById('field_' + f.name);
-    if (!el) return;
-    const v = el.value;
-    if (f.type === 'number') obj[f.name] = v === '' ? null : Number(v);
-    else obj[f.name] = v === '' ? null : v;
-  });
-  return obj;
-}
-
-async function saveRow() {
-  const data = getFormData();
-  const endpoint = TABLE_ENDPOINTS[currentAdminTable];
-  const feedback = document.getElementById('triggerFeedback');
-  feedback.style.display = 'none';
-
-  try {
-    if (editRowPK !== null) {
-      // ── UPDATE ──
-      await apiFetch('/' + endpoint + '/' + editRowPK, {
-        method: 'PUT', body: JSON.stringify(data),
-      });
-      showAdminNotif('✅ Row updated in MySQL', 'success');
-      logTrigger(`UPDATE ${currentAdminTable} pk=${editRowPK}`);
-      closeRowModal();
-    } else {
-      // ── INSERT ──
-      const result = await apiFetch('/' + endpoint, {
-        method: 'POST', body: JSON.stringify(data),
-      });
-
-      let msgs = [];
-
-      // T1: if we inserted a DRIVER successfully, the trigger passed
-      if (currentAdminTable === 'DRIVER') {
-        msgs.push(`✅ Trigger T1 passed: DriverNumber #${data.DriverNumber} is unique — INSERT allowed`);
-        logTrigger(`T1 PASSED — DriverNumber=${data.DriverNumber} accepted by MySQL`);
-      }
-
-      // T2: if the API reports t2_fired, show the auto-set date
-      if (result.t2_fired) {
-        const autoDate = result.row?.EndDate || '(auto)';
-        msgs.push(`✅ Trigger T2 fired: EndDate was NULL → MySQL auto-set to ${autoDate} (StartDate + 1 year)`);
-        logTrigger(`T2 FIRED — EndDate auto-set to ${autoDate} for ContractID=${result.id}`);
-      }
-
-      if (msgs.length) {
-        feedback.innerHTML = msgs.map(m => `<div>${m}</div>`).join('');
-        feedback.style.display = 'block';
-        showAdminNotif('✅ Row added to MySQL', 'success');
-        setTimeout(() => { closeRowModal(); loadAdminTable(currentAdminTable); refreshMainPage(); }, 2400);
-        return;
-      }
-
-      showAdminNotif('✅ Row added to MySQL', 'success');
-      logTrigger(`INSERT ${currentAdminTable} id=${result.id}`);
-      closeRowModal();
-    }
-
-    await loadAdminTable(currentAdminTable);
-    refreshMainPage();
-
-  } catch (e) {
-    // T1 block or any other DB error comes back as a 400 from Flask
-    const msg = e.data?.error || e.message;
-    showAdminNotif('🔴 ' + msg, 'error');
-
-    if (currentAdminTable === 'DRIVER' && msg.includes('T1')) {
-      feedback.innerHTML = `<div>🔴 ${msg}</div>`;
-      feedback.style.display = 'block';
-      logTrigger(`T1 BLOCKED — ${msg}`);
-    }
-  }
-}
-
-function closeRowModal() {
-  document.getElementById('adminRowModal').classList.remove('open');
-  editRowPK = null;
-}
-
-// ── Delete ─────────────────────────────────────────────────────────
-function confirmDelete(pkVal) {
-  pendingDeletePK = pkVal;
-  document.getElementById('deleteConfirmText').textContent = `Delete record (${TABLE_PK[currentAdminTable]}=${pkVal}) from ${currentAdminTable}? This cannot be undone.`;
-  document.getElementById('confirmDeleteBtn').onclick = doDelete;
-  document.getElementById('adminDeleteModal').classList.add('open');
-}
-function closeDeleteModal() { document.getElementById('adminDeleteModal').classList.remove('open'); pendingDeletePK = null; }
-
-async function doDelete() {
-  try {
-    await apiFetch('/' + TABLE_ENDPOINTS[currentAdminTable] + '/' + pendingDeletePK, { method: 'DELETE' });
-    closeDeleteModal();
-    showAdminNotif('✅ Record deleted from MySQL', 'success');
-    logTrigger(`DELETE ${currentAdminTable} pk=${pendingDeletePK}`);
-    await loadAdminTable(currentAdminTable);
-    refreshMainPage();
-  } catch (e) {
-    closeDeleteModal();
-    showAdminNotif('🔴 Delete failed: ' + (e.data?.error || e.message), 'error');
-  }
-}
-
-// ── Trigger toggle (hits the real MySQL trigger via Flask) ─────────
-async function toggleTrigger(num) {
-  try {
-    const result = await apiFetch('/triggers/' + num + '/toggle', { method: 'POST' });
-    updateTriggerUI(num, result.enabled);
-    logTrigger(`T${num} (${result.trigger}) ${result.enabled ? 'ENABLED' : 'DISABLED'} in MySQL`);
-    showAdminNotif(`T${num} ${result.enabled ? 'enabled' : 'disabled'} in MySQL`, result.enabled ? 'success' : 'success');
-  } catch (e) {
-    showAdminNotif('🔴 Could not toggle trigger: ' + (e.data?.error || e.message), 'error');
-  }
-}
-
-async function refreshTriggerStatus() {
-  try {
-    const statuses = await apiFetch('/triggers/status');
-    const t1 = statuses['trg_no_duplicate_driver_number'];
-    const t2 = statuses['trg_auto_contract_end_date'];
-    updateTriggerUI(1, t1);
-    updateTriggerUI(2, t2);
-    const anyEnabled = t1 || t2;
-    const el = document.getElementById('adminTriggerStatus');
-    el.textContent = anyEnabled ? '● TRIGGERS ACTIVE' : '○ TRIGGERS PAUSED';
-    el.style.color = anyEnabled ? '#27f4d2' : '#8f8f9c';
-  } catch (_) {}
-}
-
-function updateTriggerUI(num, enabled) {
-  const statusEl = document.getElementById(`t${num}status`);
-  const wrapEl   = document.getElementById(`triggerT${num}`);
-  if (!statusEl) return;
-  statusEl.textContent = enabled ? '● ENABLED' : '○ DISABLED';
-  statusEl.style.color = enabled ? '#27f4d2' : '#8f8f9c';
-  wrapEl.style.borderColor = enabled ? '#27f4d2' : '#2e2e3e';
-  wrapEl.style.background  = enabled ? 'rgba(39,244,210,.07)' : 'transparent';
-}
-
-function logTrigger(msg) {
-  triggerLogEntries.unshift(`[${new Date().toLocaleTimeString()}] ${msg}`);
-  if (triggerLogEntries.length > 20) triggerLogEntries.pop();
-  const el = document.getElementById('triggerLog');
-  if (el) el.innerHTML = triggerLogEntries.map(e => `<div style="padding:3px 0;border-bottom:1px solid #1e1e2a;line-height:1.4;">${e}</div>`).join('');
-}
-
-function showAdminNotif(msg, type) {
-  const el = document.getElementById('adminNotif');
-  el.style.display = 'block';
-  el.style.background = type === 'error' ? 'rgba(255,68,68,.15)' : 'rgba(39,244,210,.1)';
-  el.style.borderLeft = type === 'error' ? '4px solid #ff4444' : '4px solid #27f4d2';
-  el.style.color = type === 'error' ? '#ff4444' : '#27f4d2';
-  el.textContent = msg;
-  clearTimeout(el._t);
-  el._t = setTimeout(() => { el.style.display = 'none'; }, 4000);
-}
-
-// ── Nav scroll ─────────────────────────────────────────────────────
-const navLinks = document.querySelectorAll('nav a');
-const sections = document.querySelectorAll('section[id]');
-window.addEventListener('scroll', () => {
-  let current = '';
-  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
-  navLinks.forEach(a => { a.classList.toggle('active', a.getAttribute('href') === '#' + current); });
-});
-
-// ── Helpers ────────────────────────────────────────────────────────
-function formatDate(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-async function refreshMainPage() {
-  try {
-    const data = await fetchAll();
-    renderSchedule(data.weekends);
-    renderDriverStandings(data.drivers, data.contracts, data.teams);
-    renderDrivers(data.drivers, data.contracts, data.teams);
-    renderTeams(data.teams, data.cars);
-    renderResults(data.sessions, data.weekends, data.lapTimes, data.drivers);
-    renderIncidents(data.incidents, data.penalties, data.stewards, data.sessions, data.weekends, data.drivers);
-    renderPitStops(data.pitStops, data.drivers);
-    renderLapTimes(data.lapTimes, data.drivers);
-  } catch (e) { console.warn('Refresh error', e); }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-//  BOOTSTRAP — fetch everything from MySQL on page load
-// ═══════════════════════════════════════════════════════════════════
-
-(async () => {
-  try {
-    const data = await fetchAll();
-    renderSchedule(data.weekends);
-    renderDriverStandings(data.drivers, data.contracts, data.teams);
-    renderDrivers(data.drivers, data.contracts, data.teams);
-    renderTeams(data.teams, data.cars);
-    renderResults(data.sessions, data.weekends, data.lapTimes, data.drivers);
-    renderIncidents(data.incidents, data.penalties, data.stewards, data.sessions, data.weekends, data.drivers);
-    renderPitStops(data.pitStops, data.drivers);
-    renderLapTimes(data.lapTimes, data.drivers);
-  } catch (err) {
-    console.error('API Error:', err);
-    document.querySelectorAll('.db-banner').forEach(b => {
-      b.style.borderLeftColor = 'var(--red)';
-      b.innerHTML = '<div style="color:var(--red)">⚠ Cannot reach Flask API — is app.py running on localhost:5000?</div>';
-    });
-    document.querySelectorAll('#scheduleGrid,#driversGrid,#teamsGrid,#driverStandings,#constructorStandings,#resultsContainer,#incidentsContainer,#pitstopsContainer,#laptimesContainer').forEach(el => {
-      el.innerHTML = '<p style="color:#8f8f9c;padding:20px;">Start the Flask server: <code style="color:#27f4d2">python app.py</code></p>';
-    });
-  }
+  }catch(e){}
 })();
 </script>
 </body>

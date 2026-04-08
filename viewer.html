@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Viewer — Grand Prix Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700;900&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--red:#e10600;--black:#15151e;--dark:#1e1e2a;--panel:#23232f;--border:#2e2e3e;--grey:#8f8f9c;--accent:#8f8f9c;}
+body{font-family:'Titillium Web',sans-serif;background:var(--black);color:#fff;display:flex;flex-direction:column;height:100vh;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:var(--red);border-radius:3px;}
+header{background:#15151e;border-bottom:3px solid var(--grey);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;flex-shrink:0;}
+.logo-wrap{display:flex;align-items:center;gap:12px;text-decoration:none;}
+.logo-mark{width:36px;height:36px;background:var(--red);display:flex;align-items:center;justify-content:center;clip-path:polygon(0 0,85% 0,100% 50%,85% 100%,0 100%);}
+.logo-mark span{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;color:#fff;}
+.logo-text{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:#fff;text-transform:uppercase;}
+.role-tag{display:flex;align-items:center;gap:8px;background:rgba(143,143,156,.1);border:1px solid rgba(143,143,156,.25);padding:5px 14px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:var(--grey);letter-spacing:.1em;text-transform:uppercase;}
+.header-right{display:flex;align-items:center;gap:12px;}
+.btn-sm{background:none;border:1px solid var(--border);color:var(--grey);padding:5px 14px;cursor:pointer;font-family:'Titillium Web',sans-serif;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;transition:all .2s;text-decoration:none;display:inline-block;}
+.btn-sm:hover{border-color:var(--red);color:var(--red);}
+.dash-body{display:flex;flex:1;overflow:hidden;}
+.sidebar{width:195px;background:#15151e;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+.sb-section{padding:10px 14px 3px;font-size:9px;letter-spacing:.18em;color:var(--grey);text-transform:uppercase;font-weight:700;border-top:1px solid var(--border);margin-top:4px;}
+.sb-section:first-child{border-top:none;margin-top:8px;}
+.sb-link{display:flex;align-items:center;gap:9px;padding:9px 14px;cursor:pointer;font-size:12px;font-weight:600;color:var(--grey);text-decoration:none;border-left:3px solid transparent;transition:all .15s;}
+.sb-link:hover{color:#fff;background:rgba(255,255,255,.03);}
+.sb-link.active{color:#fff;background:rgba(255,255,255,.04);border-left-color:var(--red);}
+.sb-link .ico{font-size:13px;width:18px;text-align:center;}
+main{flex:1;overflow-y:auto;padding:28px 28px;}
+.page{display:none;} .page.active{display:block;}
+.sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;text-transform:uppercase;color:#fff;}
+.sec-title em{color:var(--red);font-style:normal;}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);}
+.db-banner{background:rgba(39,244,210,.06);border:1px solid rgba(39,244,210,.2);border-left:3px solid #27F4D2;padding:9px 14px;font-size:12px;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.db-dot{width:7px;height:7px;border-radius:50%;background:#27F4D2;animation:pulse 2s infinite;flex-shrink:0;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* schedule */
+.race-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
+.race-card{background:var(--panel);border:1px solid var(--border);border-top:2px solid transparent;padding:18px;cursor:pointer;transition:all .2s;position:relative;}
+.race-card:hover,.race-card.next{border-top-color:var(--red);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.4);}
+.race-card.next::after{content:'NEXT';position:absolute;top:10px;right:10px;background:var(--red);color:#fff;font-size:8px;font-weight:700;letter-spacing:.12em;padding:2px 7px;}
+.rc-flag{font-size:22px;margin-bottom:8px;display:block;}
+.rc-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;text-transform:uppercase;color:#fff;line-height:1.1;margin-bottom:3px;}
+.rc-circuit{font-size:11px;color:var(--grey);margin-bottom:10px;}
+.rc-date{font-size:12px;font-weight:600;color:rgba(255,255,255,.7);}
+/* standings */
+.standings-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.standings-box{} .sbox-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;color:#fff;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--red);}
+.srow{display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.srow:hover{background:rgba(255,255,255,.02);}
+.spos{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:var(--grey);}
+.spos.top{color:var(--red);}
+.sname{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;text-transform:uppercase;color:#fff;}
+.steam{font-size:11px;color:var(--grey);}
+.spts{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:#fff;}
+.spts span{font-size:10px;color:var(--grey);}
+.tbar{width:4px;height:100%;min-height:28px;border-radius:2px;display:inline-block;margin-right:6px;}
+/* drivers */
+.driver-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;}
+.driver-card{background:var(--panel);border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:all .2s;}
+.driver-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.5);}
+.dc-face{height:120px;display:flex;align-items:center;justify-content:center;font-size:48px;position:relative;}
+.dc-num{position:absolute;top:8px;right:8px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:30px;color:rgba(255,255,255,.15);}
+.dc-stripe{height:3px;}
+.dc-info{padding:12px 14px;}
+.dc-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;text-transform:uppercase;color:#fff;line-height:1.1;}
+.dc-team{font-size:10px;color:var(--grey);margin-top:3px;}
+/* teams */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;}
+.team-card{background:var(--panel);border:1px solid var(--border);padding:22px 18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.team-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.tc-accent{position:absolute;top:0;left:0;right:0;height:3px;}
+.tc-logo{height:56px;display:flex;align-items:center;justify-content:center;font-size:30px;background:rgba(255,255,255,.04);margin-bottom:12px;}
+.tc-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;text-transform:uppercase;color:#fff;margin-bottom:4px;}
+.tc-base{font-size:11px;color:var(--grey);}
+/* incidents */
+.incident-card{background:var(--panel);border:1px solid var(--border);border-left:4px solid #ff9900;padding:14px 18px;margin-bottom:10px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;}
+.inc-desc{font-size:13px;color:rgba(255,255,255,.85);margin-bottom:4px;}
+.inc-meta{font-size:11px;color:var(--grey);}
+.sev-badge{padding:3px 9px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
+.sev-high{background:rgba(225,6,0,.15);color:#ff4444;border:1px solid rgba(225,6,0,.3);}
+.sev-med{background:rgba(255,153,0,.15);color:#ff9900;border:1px solid rgba(255,153,0,.3);}
+.sev-low{background:rgba(39,244,210,.1);color:#27f4d2;border:1px solid rgba(39,244,210,.25);}
+/* pit stops */
+.ps-table{width:100%;border-collapse:collapse;}
+.ps-table th{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--grey);padding:8px 12px;border-bottom:2px solid var(--red);text-align:left;}
+.ps-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:12px;color:rgba(255,255,255,.8);}
+.ps-table tr:hover td{background:rgba(255,255,255,.02);}
+/* lap times */
+.lap-row{display:grid;grid-template-columns:48px 1fr 100px;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);}
+.lap-num{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--grey);}
+.lap-bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.lap-bar{height:100%;border-radius:3px;background:#3671C6;transition:width .6s ease;}
+.lap-time{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:#fff;text-align:right;}
+.fastest .lap-time{color:#a020f0;} .fastest .lap-bar{background:#a020f0!important;}
+/* modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--red);max-width:560px;width:90%;max-height:80vh;overflow-y:auto;padding:28px;position:relative;}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--grey);font-size:22px;cursor:pointer;}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;text-transform:uppercase;color:#fff;margin-bottom:18px;}
+.modal-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.modal-label{color:var(--grey);}.modal-val{color:#fff;font-weight:600;}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="logo-wrap">
+    <div class="logo-mark"><span>GP</span></div>
+    <span class="logo-text">Grand Prix Hub</span>
+  </a>
+  <div class="header-right">
+    <div class="role-tag">👁 Viewer</div>
+    <a href="login.html" class="btn-sm">Switch Role</a>
+    <button onclick="Auth.logout()" class="btn-sm">Sign Out</button>
+  </div>
+</header>
+
+<div class="dash-body">
+  <nav class="sidebar">
+    <div class="sb-section">Season</div>
+    <a class="sb-link active" onclick="showPage('schedule')"><span class="ico">🏁</span>Race Schedule</a>
+    <a class="sb-link" onclick="showPage('standings')"><span class="ico">🏆</span>Standings</a>
+    <a class="sb-link" onclick="showPage('results')"><span class="ico">📋</span>Results</a>
+    <div class="sb-section">Competitors</div>
+    <a class="sb-link" onclick="showPage('drivers')"><span class="ico">👤</span>Drivers</a>
+    <a class="sb-link" onclick="showPage('teams')"><span class="ico">🏎️</span>Teams</a>
+    <div class="sb-section">Race Data</div>
+    <a class="sb-link" onclick="showPage('incidents')"><span class="ico">⚠️</span>Incidents</a>
+    <a class="sb-link" onclick="showPage('pitstops')"><span class="ico">🔧</span>Pit Stops</a>
+    <a class="sb-link" onclick="showPage('laptimes')"><span class="ico">🕒</span>Lap Times</a>
+  </nav>
+
+  <main>
+    <!-- SCHEDULE -->
+    <div class="page active" id="page-schedule">
+      <div class="sec-head"><h2 class="sec-title">2026 <em>Race Schedule</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>MySQL · RACE_WEEKEND table</div>
+      <div class="race-grid" id="scheduleGrid"><div style="color:var(--grey)">Loading…</div></div>
+    </div>
+
+    <!-- STANDINGS -->
+    <div class="page" id="page-standings">
+      <div class="sec-head"><h2 class="sec-title">2026 <em>Standings</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>MySQL · DRIVER + TEAM + DRIVER_CONTRACT</div>
+      <div class="standings-grid">
+        <div><div class="sbox-title">Drivers Championship</div><div id="driverStandings"></div></div>
+        <div><div class="sbox-title">Constructors Championship</div><div id="constructorStandings"></div></div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="page" id="page-results">
+      <div class="sec-head"><h2 class="sec-title">Latest <em>Results</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>MySQL · SESSION + LAP_TIME tables</div>
+      <div id="resultsContainer"></div>
+    </div>
+
+    <!-- DRIVERS -->
+    <div class="page" id="page-drivers">
+      <div class="sec-head"><h2 class="sec-title">2026 <em>Drivers</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>MySQL · DRIVER + DRIVER_CONTRACT tables</div>
+      <div class="driver-grid" id="driversGrid"></div>
+    </div>
+
+    <!-- TEAMS -->
+    <div class="page" id="page-teams">
+      <div class="sec-head"><h2 class="sec-title">2026 <em>Teams</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>MySQL · TEAM + CAR tables</div>
+      <div class="team-grid" id="teamsGrid"></div>
+    </div>
+
+    <!-- INCIDENTS -->
+    <div class="page" id="page-incidents">
+      <div class="sec-head"><h2 class="sec-title">Race <em>Incidents</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>MySQL · INCIDENT + PENALTY + STEWARD</div>
+      <div id="incidentsContainer"></div>
+    </div>
+
+    <!-- PIT STOPS -->
+    <div class="page" id="page-pitstops">
+      <div class="sec-head"><h2 class="sec-title">Pit <em>Stop Analysis</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>MySQL · PIT_STOP table</div>
+      <div id="pitstopsContainer"></div>
+    </div>
+
+    <!-- LAP TIMES -->
+    <div class="page" id="page-laptimes">
+      <div class="sec-head"><h2 class="sec-title">Lap <em>Time Chart</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>MySQL · LAP_TIME · Race 1 · Verstappen</div>
+      <div id="laptimesContainer"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="modalTitle"></div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:5000/api';
+const Auth = {
+  get(){return{user:localStorage.getItem('gph_user')||'viewer',role:localStorage.getItem('gph_role')||'viewer'};},
+  clear(){localStorage.removeItem('gph_user');localStorage.removeItem('gph_role');},
+  logout(){Auth.clear();window.location.href='index.html';}
+};
+
+async function apiFetch(p,o={}){const r=await fetch(API+p,{credentials:'include',headers:{'Content-Type':'application/json'},...o});const j=await r.json();if(!r.ok)throw new Error(j.error||'API error');return j;}
+function fmtDate(d){if(!d)return'—';return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
+
+// Navigation
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(a=>a.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event?.currentTarget?.classList.add('active');
+}
+
+// Modals
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+function mrow(l,v){return`<div class="modal-row"><span class="modal-label">${l}</span><span class="modal-val">${v}</span></div>`;}
+
+const POINTS = {
+  driver:[{pos:1,dID:1,pts:0},{pos:2,dID:2,pts:0},{pos:3,dID:4,pts:0},{pos:4,dID:3,pts:0},{pos:5,dID:5,pts:0},{pos:6,dID:6,pts:0}],
+  constructor:[{pos:1,tID:1,pts:0},{pos:2,tID:2,pts:0},{pos:3,tID:3,pts:0},{pos:4,tID:4,pts:0},{pos:5,tID:5,pts:0}],
+};
+
+let DB = {};
+
+async function loadAll() {
+  const [teams,drivers,contracts,cars,weekends,sessions,lapTimes,pitStops,incidents,penalties] = await Promise.all([
+    apiFetch('/teams'),apiFetch('/drivers'),apiFetch('/driver_contracts'),apiFetch('/cars'),
+    apiFetch('/race_weekends'),apiFetch('/sessions'),apiFetch('/lap_times'),
+    apiFetch('/pit_stops'),apiFetch('/incidents'),apiFetch('/penalties'),
+  ]);
+  DB={teams,drivers,contracts,cars,weekends,sessions,lapTimes,pitStops,incidents,penalties};
+  renderSchedule();renderStandings();renderDrivers();renderTeams();renderResults();renderIncidents();renderPitStops();renderLapTimes();
+}
+
+function renderSchedule() {
+  const today=new Date();
+  const sorted=[...DB.weekends].map(w=>({...w,_d:new Date(w.EndDate)})).sort((a,b)=>a._d-b._d);
+  const nextIdx=sorted.findIndex(w=>w._d>=today);
+  document.getElementById('scheduleGrid').innerHTML=sorted.map((w,i)=>`
+    <div class="race-card ${i===nextIdx?'next':''}" onclick="showWeekendModal(${w.WeekendID})">
+      <span class="rc-flag">${w.flag}</span>
+      <div class="rc-name">${w.name}</div>
+      <div class="rc-circuit">${(w.circuit||'').split(',')[0]}</div>
+      <div class="rc-date">📅 ${fmtDate(w.EndDate)}</div>
+    </div>`).join('');
+}
+
+function renderStandings() {
+  document.getElementById('driverStandings').innerHTML=POINTS.driver.map(p=>{
+    const d=DB.drivers.find(x=>x.DriverID===p.dID);
+    const c=DB.contracts.find(x=>x.DriverID===p.dID);
+    const t=c?DB.teams.find(x=>x.TeamID===c.TeamID):null;
+    if(!d)return'';
+    return`<div class="srow"><div class="spos ${p.pos<=3?'top':''}">${p.pos}</div>
+      <div><div class="sname"><span class="tbar" style="background:${t?t.color:'#666'}"></span>${d.FirstName} ${d.LastName}</div><div class="steam">${t?t.TeamName:'—'}</div></div>
+      <div class="spts">${p.pts} <span>PTS</span></div></div>`;
+  }).join('');
+  document.getElementById('constructorStandings').innerHTML=POINTS.constructor.map(p=>{
+    const t=DB.teams.find(x=>x.TeamID===p.tID);if(!t)return'';
+    return`<div class="srow"><div class="spos ${p.pos<=3?'top':''}">${p.pos}</div>
+      <div><div class="sname"><span class="tbar" style="background:${t.color}"></span>${t.TeamName.split(' ').slice(0,2).join(' ')}</div></div>
+      <div class="spts">${p.pts} <span>PTS</span></div></div>`;
+  }).join('');
+}
+
+function renderDrivers() {
+  document.getElementById('driversGrid').innerHTML=DB.drivers.map(d=>{
+    const c=DB.contracts.find(x=>x.DriverID===d.DriverID);
+    const t=c?DB.teams.find(x=>x.TeamID===c.TeamID):null;
+    return`<div class="driver-card" onclick="showDriverModal(${d.DriverID})">
+      <div class="dc-face" style="background:linear-gradient(160deg,${t?t.color+'22':'#1a1a26'} 0%,#1a1a26 100%);">
+        <span style="font-size:44px">${d.flag}</span>
+        <div class="dc-num">${d.DriverNumber}</div>
+      </div>
+      <div class="dc-stripe" style="background:${t?t.color:'#666'}"></div>
+      <div class="dc-info"><div class="dc-name">${d.FirstName}<br>${d.LastName}</div><div class="dc-team">${t?t.TeamName:'—'}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderTeams() {
+  document.getElementById('teamsGrid').innerHTML=DB.teams.map(t=>{
+    const cars=DB.cars.filter(c=>c.TeamID===t.TeamID);
+    return`<div class="team-card" onclick="showTeamModal(${t.TeamID})">
+      <div class="tc-accent" style="background:${t.color}"></div>
+      <div class="tc-logo">${t.emoji}</div>
+      <div class="tc-name">${t.TeamName.split(' ').slice(0,2).join(' ')}</div>
+      <div class="tc-base">${t.BaseCountry} · Cars: ${cars.map(c=>c.ChassisCode).join(', ')||'—'}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderResults() {
+  const races=DB.sessions.filter(s=>s.SessionType==='Race');
+  if(!races.length){document.getElementById('resultsContainer').innerHTML='<div style="color:var(--grey);padding:40px;text-align:center;border:1px dashed var(--border)">🏁 Race results will appear after Round 1 — 22 Mar 2026</div>';return;}
+  document.getElementById('resultsContainer').innerHTML=races.map(s=>{
+    const w=DB.weekends.find(x=>x.WeekendID===s.WeekendID);
+    const sessLaps=DB.lapTimes.filter(l=>l.SessionID===s.SessionID);
+    const dLaps={};sessLaps.forEach(l=>{dLaps[l.DriverID]=(dLaps[l.DriverID]||0)+1;});
+    const top3=Object.entries(dLaps).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    return`<div style="background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--red);padding:18px 22px;margin-bottom:10px;display:grid;grid-template-columns:56px 1fr auto;gap:18px;align-items:center;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:32px;color:rgba(255,255,255,.1);text-align:center;">${String(w?.WeekendID||'').padStart(2,'0')}</div>
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;text-transform:uppercase;color:#fff;margin-bottom:4px;">${w?.flag||''} ${w?.name||'Race'}</div>
+        <div style="display:flex;gap:14px;margin-top:6px;">${top3.map(([did],i)=>{const d=DB.drivers.find(x=>x.DriverID==did);const medals=['#ffd700','#c0c0c0','#cd7f32'];return`<div style="display:flex;align-items:center;gap:6px;"><div style="width:20px;height:20px;border-radius:50%;background:${medals[i]};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#000;">${i+1}</div><span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.8)">${d?.LastName||'—'}</span></div>`;}).join('')}</div>
+      </div>
+      <div style="font-size:12px;color:var(--grey);text-align:right;">${fmtDate(s.SessionStartTime)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderIncidents() {
+  document.getElementById('incidentsContainer').innerHTML=DB.incidents.map(inc=>{
+    const s=DB.sessions.find(x=>x.SessionID===inc.SessionID);
+    const w=s?DB.weekends.find(x=>x.WeekendID===s.WeekendID):null;
+    const pen=DB.penalties.find(p=>p.IncidentID===inc.IncidentID);
+    const sc=inc.Severity==='High'?'sev-high':inc.Severity==='Medium'?'sev-med':'sev-low';
+    return`<div class="incident-card" style="border-left-color:${inc.Severity==='High'?'#ff4444':inc.Severity==='Medium'?'#ff9900':'#27f4d2'}">
+      <div>
+        <div class="inc-desc">${inc.Description}</div>
+        <div class="inc-meta">${w?w.flag+' '+w.name:''} · Lap ${inc.LapNo} · ${s?s.SessionType:''}
+          ${pen?` · <strong style="color:#ff9900">Penalty: ${pen.PenaltyType} (${pen.PenaltyValue})</strong>`:' · No penalty'}</div>
+      </div>
+      <span class="sev-badge ${sc}">${inc.Severity}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderPitStops() {
+  document.getElementById('pitstopsContainer').innerHTML=`<table class="ps-table">
+    <thead><tr><th>Driver</th><th>Pit #</th><th>Lap</th><th>Duration</th><th>Tyre</th></tr></thead>
+    <tbody>${DB.pitStops.sort((a,b)=>a.LapNo-b.LapNo).map(p=>{
+      const d=DB.drivers.find(x=>x.DriverID===p.DriverID);
+      const tyreClass=p.TyreCompound==='Soft'?'color:#ff3333':p.TyreCompound==='Medium'?'color:#ffcc00':'color:#aaa';
+      return`<tr><td>${d?d.flag+' '+d.FirstName+' '+d.LastName:'—'}</td><td>${p.PitNo}</td><td>${p.LapNo}</td>
+        <td style="font-weight:700;color:${p.DurationMS<2300?'#27F4D2':'#fff'}">${(p.DurationMS/1000).toFixed(3)}s ${p.DurationMS<2300?'⚡':''}</td>
+        <td style="${tyreClass};font-weight:700">${p.TyreCompound}</td></tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function renderLapTimes() {
+  const laps=DB.lapTimes.filter(l=>l.SessionID===1&&l.DriverID===1).sort((a,b)=>a.LapNo-b.LapNo);
+  if(!laps.length){document.getElementById('laptimesContainer').innerHTML='<div style="color:var(--grey)">No lap time data available</div>';return;}
+  const toMs=t=>{const[m,s]=t.split(':');return parseFloat(m)*60000+parseFloat(s)*1000;};
+  const times=laps.map(l=>toMs(l.LapTime));
+  const min=Math.min(...times),max=Math.max(...times),fastIdx=times.indexOf(min);
+  document.getElementById('laptimesContainer').innerHTML=`<div style="margin-bottom:10px;font-size:12px;color:var(--grey)">Verstappen · Australian GP · Race · ${laps.length} laps recorded</div>
+    ${laps.map((l,i)=>{const pct=100-((times[i]-min)/(max-min)*65);return`<div class="lap-row ${i===fastIdx?'fastest':''}">
+      <div class="lap-num">L${l.LapNo}</div>
+      <div class="lap-bar-wrap"><div class="lap-bar" style="width:${pct}%;background:${i===fastIdx?'#a020f0':'#3671C6'}"></div></div>
+      <div class="lap-time">${l.LapTime}${i===fastIdx?' 💜':''}</div>
+    </div>`;}).join('')}`;
+}
+
+// Modals
+async function showDriverModal(id) {
+  const d=DB.drivers.find(x=>x.DriverID===id);if(!d)return;
+  const c=DB.contracts.find(x=>x.DriverID===id);
+  const t=c?DB.teams.find(x=>x.TeamID===c.TeamID):null;
+  const stops=DB.pitStops.filter(x=>x.DriverID===id);
+  document.getElementById('modalTitle').textContent=d.flag+' '+d.FirstName+' '+d.LastName;
+  document.getElementById('modalContent').innerHTML=
+    mrow('Driver Number','#'+d.DriverNumber)+mrow('Nationality',d.Nationality)+mrow('Date of Birth',fmtDate(d.DOB))+
+    mrow('Team',t?`<span style="color:${t.color}">${t.TeamName}</span>`:'—')+
+    mrow('Contract Until',c?fmtDate(c.EndDate):'—')+mrow('Pit Stops',stops.length)+
+    (stops.length?mrow('Best Pit Stop',(Math.min(...stops.map(s=>s.DurationMS))/1000).toFixed(3)+'s'):'');
+  document.getElementById('modalOverlay').classList.add('open');
+}
+async function showTeamModal(id) {
+  const t=DB.teams.find(x=>x.TeamID===id);if(!t)return;
+  const cars=DB.cars.filter(c=>c.TeamID===id);
+  const dIDs=DB.contracts.filter(c=>c.TeamID===id).map(c=>c.DriverID);
+  const drvs=DB.drivers.filter(d=>dIDs.includes(d.DriverID));
+  document.getElementById('modalTitle').textContent=t.emoji+' '+t.TeamName;
+  document.getElementById('modalContent').innerHTML=
+    mrow('Base Country',t.BaseCountry)+mrow('Drivers',drvs.map(d=>d.flag+' '+d.FirstName+' '+d.LastName).join('<br>')||'—')+
+    cars.map(c=>mrow('Car #'+c.CarNumber,c.ChassisCode)).join('');
+  document.getElementById('modalOverlay').classList.add('open');
+}
+async function showWeekendModal(id) {
+  const w=DB.weekends.find(x=>x.WeekendID===id);if(!w)return;
+  const sess=DB.sessions.filter(s=>s.WeekendID===id);
+  document.getElementById('modalTitle').textContent=w.flag+' '+w.name;
+  document.getElementById('modalContent').innerHTML=
+    mrow('Circuit',w.circuit)+mrow('Start Date',fmtDate(w.StartDate))+mrow('Race Date',fmtDate(w.EndDate))+
+    mrow('Sessions',sess.map(s=>s.SessionType).join(' · ')||'TBC');
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+
+// Bootstrap
+loadAll().catch(e=>{
+  document.querySelectorAll('.db-banner').forEach(b=>{b.style.borderLeftColor='var(--red)';b.innerHTML='<div style="color:var(--red)">⚠ Cannot reach Flask API — run: python app.py</div>';});
+});
+</script>
+</body>
+</html>

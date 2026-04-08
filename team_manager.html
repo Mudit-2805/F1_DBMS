@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Team Manager — Grand Prix Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700;900&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--red:#e10600;--black:#15151e;--dark:#1e1e2a;--panel:#23232f;--border:#2e2e3e;--grey:#8f8f9c;--accent:#FF8000;}
+body{font-family:'Titillium Web',sans-serif;background:var(--black);color:#fff;display:flex;flex-direction:column;height:100vh;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:var(--accent);border-radius:3px;}
+header{background:#15151e;border-bottom:3px solid var(--accent);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;flex-shrink:0;}
+.logo-wrap{display:flex;align-items:center;gap:12px;text-decoration:none;}
+.logo-mark{width:36px;height:36px;background:var(--red);display:flex;align-items:center;justify-content:center;clip-path:polygon(0 0,85% 0,100% 50%,85% 100%,0 100%);}
+.logo-mark span{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;color:#fff;}
+.logo-text{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:#fff;text-transform:uppercase;}
+.role-tag{display:flex;align-items:center;gap:8px;background:rgba(255,128,0,.1);border:1px solid rgba(255,128,0,.3);padding:5px 14px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;}
+.header-right{display:flex;align-items:center;gap:12px;}
+.btn-sm{background:none;border:1px solid var(--border);color:var(--grey);padding:5px 14px;cursor:pointer;font-family:'Titillium Web',sans-serif;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;transition:all .2s;text-decoration:none;display:inline-block;}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent);}
+.dash-body{display:flex;flex:1;overflow:hidden;}
+.sidebar{width:195px;background:#15151e;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+.sb-section{padding:10px 14px 3px;font-size:9px;letter-spacing:.18em;color:var(--grey);text-transform:uppercase;font-weight:700;border-top:1px solid var(--border);margin-top:4px;}
+.sb-section:first-child{border-top:none;margin-top:8px;}
+.sb-link{display:flex;align-items:center;gap:9px;padding:9px 14px;cursor:pointer;font-size:12px;font-weight:600;color:var(--grey);text-decoration:none;border-left:3px solid transparent;transition:all .15s;}
+.sb-link:hover{color:#fff;background:rgba(255,255,255,.03);}
+.sb-link.active{color:#fff;background:rgba(255,128,0,.08);border-left-color:var(--accent);}
+.sb-link .ico{font-size:13px;width:18px;text-align:center;}
+main{flex:1;overflow-y:auto;padding:28px;}
+.page{display:none;}.page.active{display:block;}
+.sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;text-transform:uppercase;color:#fff;}
+.sec-title em{color:var(--accent);font-style:normal;}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);}
+.db-banner{background:rgba(255,128,0,.06);border:1px solid rgba(255,128,0,.2);border-left:3px solid var(--accent);padding:9px 14px;font-size:12px;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.db-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;flex-shrink:0;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:24px;}
+.team-box{background:var(--panel);border:1px solid var(--border);padding:20px;position:relative;overflow:hidden;}
+.tb-accent{position:absolute;top:0;left:0;right:0;height:3px;}
+.tb-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.tb-logo{font-size:26px;}
+.tb-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;text-transform:uppercase;color:#fff;}
+.tb-base{font-size:11px;color:var(--grey);}
+.driver-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);}
+.driver-row:last-child{border-bottom:none;}
+.dr-flag{font-size:16px;}
+.dr-name{font-size:13px;color:#fff;font-weight:600;flex:1;}
+.dr-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:var(--grey);}
+.contract-badge{font-size:10px;color:#27f4d2;font-weight:600;}
+/* TXN */
+.txn-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.txn-card{background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--accent);padding:24px;}
+.txn-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;text-transform:uppercase;color:#fff;margin-bottom:4px;}
+.txn-nn{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.1em;padding:2px 8px;background:rgba(39,244,210,.08);color:#27f4d2;border:1px solid rgba(39,244,210,.25);margin-bottom:10px;}
+.txn-desc{font-size:12px;color:var(--grey);margin-bottom:16px;line-height:1.55;}
+.txn-field{margin-bottom:11px;}
+.txn-label{font-size:10px;letter-spacing:.12em;color:var(--grey);text-transform:uppercase;display:block;margin-bottom:5px;font-weight:700;}
+.txn-input,.txn-select{width:100%;background:#15151e;border:1px solid #2e2e3e;color:#fff;padding:8px 12px;font-family:'Titillium Web',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+.txn-input:focus,.txn-select:focus{border-color:var(--accent);}
+.txn-btn{width:100%;background:var(--accent);color:#000;border:none;padding:11px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;clip-path:polygon(0 0,96% 0,100% 50%,96% 100%,0 100%);transition:opacity .2s;margin-top:4px;}
+.txn-btn:hover{opacity:.85;}.txn-btn:disabled{opacity:.4;cursor:not-allowed;}
+.txn-log{margin-top:12px;background:#0d0d14;border:1px solid #1e1e2a;padding:10px 12px;font-size:11px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.03em;min-height:64px;max-height:200px;overflow-y:auto;}
+.step-row{display:flex;gap:8px;padding:5px 8px;background:#0d0d14;border-left:3px solid #2e2e3e;margin-bottom:3px;font-size:11px;color:#8f8f9c;transition:all .3s;}
+.step-ok{border-left-color:#27f4d2;color:#b0f5ee;}.step-err{border-left-color:#ff4444;color:#ff9999;}.step-run{border-left-color:#ff9900;color:#ffcc88;}
+.tl-ok,.tl-info,.tl-err,.tl-warn{padding:2px 0;border-bottom:1px solid #1e1e2a;line-height:1.4;}
+.tl-ok{color:#27f4d2;}.tl-info{color:#8f8f9c;}.tl-err{color:#ff4444;}.tl-warn{color:#ff9900;}
+/* data table */
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--grey);padding:8px 12px;border-bottom:2px solid var(--accent);text-align:left;}
+.data-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:12px;color:rgba(255,255,255,.8);}
+.data-table tr:hover td{background:rgba(255,255,255,.02);}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="logo-wrap">
+    <div class="logo-mark"><span>GP</span></div>
+    <span class="logo-text">Grand Prix Hub</span>
+  </a>
+  <div class="header-right">
+    <div class="role-tag">🏎️ Team Manager</div>
+    <a href="analyst.html" class="btn-sm">↗ Analytics</a>
+    <a href="login.html" class="btn-sm">Switch Role</a>
+    <button onclick="Auth.logout()" class="btn-sm">Sign Out</button>
+  </div>
+</header>
+
+<div class="dash-body">
+  <nav class="sidebar">
+    <div class="sb-section">Team Management</div>
+    <a class="sb-link active" onclick="showPage('roster')"><span class="ico">🏎️</span>Team Roster</a>
+    <a class="sb-link" onclick="showPage('contracts')"><span class="ico">📝</span>Contracts (N:N)</a>
+    <a class="sb-link" onclick="showPage('cars')"><span class="ico">🔩</span>Car Assignments</a>
+    <div class="sb-section">Transactions</div>
+    <a class="sb-link" onclick="showPage('txn-sign')"><span class="ico">✍️</span>Sign Driver</a>
+    <a class="sb-link" onclick="showPage('txn-weekend')"><span class="ico">🏁</span>Register Weekend</a>
+    <div class="sb-section">Navigate</div>
+    <a class="sb-link" href="viewer.html"><span class="ico">📋</span>Race Schedule</a>
+    <a class="sb-link" href="analyst.html"><span class="ico">📊</span>Analytics</a>
+  </nav>
+
+  <main>
+    <!-- ROSTER -->
+    <div class="page active" id="page-roster">
+      <div class="sec-head"><h2 class="sec-title">Team <em>Roster</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>MySQL · TEAM + DRIVER + DRIVER_CONTRACT tables</div>
+      <div class="team-grid" id="teamRoster"></div>
+    </div>
+
+    <!-- CONTRACTS N:N -->
+    <div class="page" id="page-contracts">
+      <div class="sec-head"><h2 class="sec-title">Driver Contracts <em>(N:N)</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>MySQL · DRIVER_CONTRACT junction table</div>
+      <div style="background:rgba(255,128,0,.06);border:1px solid rgba(255,128,0,.2);border-left:4px solid var(--accent);padding:12px 16px;margin-bottom:18px;font-size:13px;color:rgba(255,255,255,.7);">
+        <strong>N:N Relationship:</strong> A DRIVER can hold contracts with multiple teams over their career, and each TEAM employs multiple drivers.
+        The DRIVER_CONTRACT table acts as the junction (bridge) table with DriverID and TeamID as foreign keys.
+      </div>
+      <div id="contractsTable"></div>
+    </div>
+
+    <!-- CARS -->
+    <div class="page" id="page-cars">
+      <div class="sec-head"><h2 class="sec-title">Car <em>Assignments</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>MySQL · CAR table</div>
+      <div id="carsTable"></div>
+    </div>
+
+    <!-- TXN 1: Sign Driver -->
+    <div class="page" id="page-txn-sign">
+      <div class="sec-head"><h2 class="sec-title">Transaction: <em>Sign Driver</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>Real MySQL transaction — BEGIN / COMMIT / ROLLBACK</div>
+      <div class="txn-grid">
+        <div class="txn-card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <div style="width:36px;height:36px;background:rgba(255,128,0,.12);border:1px solid rgba(255,128,0,.3);display:flex;align-items:center;justify-content:center;font-size:18px;">📝</div>
+            <div class="txn-title">Sign Driver to Team</div>
+          </div>
+          <div class="txn-nn">N:N — DRIVER ↔ TEAM via DRIVER_CONTRACT junction table</div>
+          <div class="txn-desc">
+            Executes a real MySQL transaction:<br>
+            1. <code>SELECT … FOR UPDATE</code> on DRIVER row (acquires row-level lock)<br>
+            2. <code>SELECT … FOR UPDATE</code> on TEAM row<br>
+            3. <code>DELETE</code> existing DRIVER_CONTRACT for this driver<br>
+            4. <code>INSERT</code> new DRIVER_CONTRACT (N:N junction row)<br>
+            5. <code>COMMIT</code> — or full ROLLBACK on any failure.
+          </div>
+          <div id="txn1_steps" style="margin-bottom:14px;"></div>
+          <div class="txn-field"><label class="txn-label">Driver</label><select class="txn-select" id="txn1_driver"></select></div>
+          <div class="txn-field"><label class="txn-label">New Team</label><select class="txn-select" id="txn1_team"></select></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div class="txn-field"><label class="txn-label">Start Date</label><input class="txn-input" type="date" id="txn1_start" value="2026-01-01"/></div>
+            <div class="txn-field"><label class="txn-label">End Date</label><input class="txn-input" type="date" id="txn1_end" value="2027-12-31"/></div>
+          </div>
+          <button class="txn-btn" id="txn1_btn" onclick="runTxn1()">▶ EXECUTE TRANSACTION</button>
+          <div class="txn-log" id="txn1_log"><div class="tl-info">Ready — select a driver and team, then execute</div></div>
+        </div>
+
+        <div style="background:var(--panel);border:1px solid var(--border);padding:24px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;color:#fff;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);">Current Contracts (live)</div>
+          <div id="currentContracts"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TXN 3: Register Weekend -->
+    <div class="page" id="page-txn-weekend">
+      <div class="sec-head"><h2 class="sec-title">Transaction: <em>Register Race Weekend</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>Real MySQL transaction — RACE_WEEKEND + SESSION rows atomically</div>
+      <div class="txn-card" style="max-width:600px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="width:36px;height:36px;background:rgba(255,128,0,.12);border:1px solid rgba(255,128,0,.3);display:flex;align-items:center;justify-content:center;font-size:18px;">🏁</div>
+          <div class="txn-title">Register Race Weekend + Sessions</div>
+        </div>
+        <div class="txn-nn">1:N — RACE_WEEKEND → multiple SESSION rows (atomic multi-insert)</div>
+        <div class="txn-desc">
+          Creates a RACE_WEEKEND and all selected SESSION rows in a single MySQL transaction.
+          Tick <strong>"Simulate failure"</strong> to crash after the RACE_WEEKEND insert — proving that no orphaned RACE_WEEKEND exists without sessions, and no sessions exist without a valid parent weekend.
+        </div>
+        <div id="txn3_steps" style="margin-bottom:14px;"></div>
+        <div class="txn-field"><label class="txn-label">Race Name</label><input class="txn-input" type="text" id="txn3_name" placeholder="e.g. Brazilian Grand Prix"/></div>
+        <div class="txn-field"><label class="txn-label">Circuit</label><input class="txn-input" type="text" id="txn3_circuit" placeholder="e.g. Autodromo Jose Carlos Pace, Sao Paulo"/></div>
+        <div style="display:grid;grid-template-columns:60px 1fr 1fr;gap:8px;">
+          <div class="txn-field"><label class="txn-label">Flag</label><input class="txn-input" type="text" id="txn3_flag" placeholder="🇧🇷" style="font-size:18px;text-align:center;"/></div>
+          <div class="txn-field"><label class="txn-label">Start Date</label><input class="txn-input" type="date" id="txn3_start"/></div>
+          <div class="txn-field"><label class="txn-label">Race Date</label><input class="txn-input" type="date" id="txn3_end"/></div>
+        </div>
+        <div class="txn-field">
+          <label class="txn-label">Sessions to create</label>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;" id="txn3_checks">
+            <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--accent);"> Practice 1</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--accent);"> Practice 2</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--accent);"> Practice 3</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--accent);"> Qualifying</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--accent);"> Race</label>
+          </div>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#ff9900;cursor:pointer;margin-bottom:14px;">
+          <input type="checkbox" id="txn3_fail" style="accent-color:var(--red);width:14px;height:14px;">
+          🔴 Simulate failure after RACE_WEEKEND insert — tests ROLLBACK
+        </label>
+        <button class="txn-btn" id="txn3_btn" onclick="runTxn3()">▶ EXECUTE TRANSACTION</button>
+        <div class="txn-log" id="txn3_log"><div class="tl-info">Ready — fill in details and execute</div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const API='http://localhost:5000/api';
+const Auth={
+  get(){return{user:localStorage.getItem('gph_user')||'viewer',role:localStorage.getItem('gph_role')||'viewer'};},
+  clear(){localStorage.removeItem('gph_user');localStorage.removeItem('gph_role');},
+  logout(){Auth.clear();window.location.href='index.html';}
+};
+if(!['team_manager','admin'].includes(Auth.get().role)){window.location.href='login.html';}
+
+async function apiFetch(p,o={}){const r=await fetch(API+p,{credentials:'include',headers:{'Content-Type':'application/json'},...o});const j=await r.json();if(!r.ok)throw Object.assign(new Error(j.error||'API error'),{status:r.status,data:j});return j;}
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.sb-link').forEach(a=>a.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');event?.currentTarget?.classList.add('active');}
+function txnLog(id,msg,type='info'){const el=document.getElementById(id);if(!el)return;const d=document.createElement('div');d.className='tl-'+type;d.textContent='['+new Date().toLocaleTimeString()+'] '+msg;el.insertBefore(d,el.firstChild);}
+function renderSteps(id,steps){const el=document.getElementById(id);if(!el)return;el.innerHTML=steps.map(s=>`<div class="step-row step-${s.status||'pending'}"><span style="flex-shrink:0">${s.status==='ok'?'✅':s.status==='error'?'❌':s.status==='run'?'⏳':'○'}</span><span>${s.msg}</span>${s.ts?`<span style="margin-left:auto;color:#8f8f9c;font-size:10px">${s.ts}</span>`:''}</div>`).join('');}
+function setBtn(id,loading){const b=document.getElementById(id);if(!b)return;if(!b.dataset.orig)b.dataset.orig=b.textContent;b.disabled=loading;b.textContent=loading?'⏳ Executing…':b.dataset.orig;}
+
+let DB={};
+
+async function loadAll(){
+  const [teams,drivers,contracts,cars,weekends]=await Promise.all([
+    apiFetch('/teams'),apiFetch('/drivers'),apiFetch('/driver_contracts'),apiFetch('/cars'),apiFetch('/race_weekends'),
+  ]);
+  DB={teams,drivers,contracts,cars,weekends};
+  renderRoster();renderContractsTable();renderCarsTable();renderCurrentContracts();populateDropdowns();
+  // Set default TXN3 dates
+  const d1=new Date();d1.setDate(d1.getDate()+30);const d2=new Date(d1);d2.setDate(d2.getDate()+2);
+  const fmt=d=>d.toISOString().split('T')[0];
+  document.getElementById('txn3_start').value=fmt(d1);document.getElementById('txn3_end').value=fmt(d2);
+}
+
+function renderRoster(){
+  document.getElementById('teamRoster').innerHTML=DB.teams.map(t=>{
+    const tc=DB.contracts.filter(c=>c.TeamID===t.TeamID);
+    const td=tc.map(c=>DB.drivers.find(d=>d.DriverID===c.DriverID)).filter(Boolean);
+    const cars=DB.cars.filter(c=>c.TeamID===t.TeamID);
+    return`<div class="team-box"><div class="tb-accent" style="background:${t.color}"></div>
+      <div class="tb-header"><div class="tb-logo">${t.emoji}</div>
+        <div><div class="tb-name">${t.TeamName.split(' ').slice(0,2).join(' ')}</div><div class="tb-base">${t.BaseCountry}</div></div>
+      </div>
+      ${td.map(d=>{const c=tc.find(x=>x.DriverID===d.DriverID);return`<div class="driver-row">
+        <span class="dr-flag">${d.flag}</span><span class="dr-name">${d.FirstName} ${d.LastName}</span>
+        <span class="dr-num" style="color:${t.color}">#${d.DriverNumber}</span>
+      </div><div style="font-size:10px;color:#27f4d2;padding-bottom:4px;border-bottom:1px solid var(--border);" class="contract-badge">Contract: ${c?c.StartDate:''} → ${c?c.EndDate:''}</div>`;}).join('')}
+      ${td.length===0?'<div style="font-size:12px;color:var(--grey);padding:4px 0;">No contracted drivers</div>':''}
+      <div style="margin-top:10px;font-size:11px;color:var(--grey);">Cars: ${cars.map(c=>c.ChassisCode).join(', ')||'—'}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderContractsTable(){
+  document.getElementById('contractsTable').innerHTML=`<table class="data-table"><thead><tr><th>ContractID (PK)</th><th>DriverID (FK)</th><th>Driver</th><th>TeamID (FK)</th><th>Team</th><th>Start Date</th><th>End Date</th></tr></thead><tbody>
+    ${DB.contracts.map(c=>{const d=DB.drivers.find(x=>x.DriverID===c.DriverID);const t=DB.teams.find(x=>x.TeamID===c.TeamID);
+      return`<tr><td style="color:var(--accent);font-weight:700">#${c.ContractID}</td>
+        <td style="color:#3671C6;font-weight:700">${c.DriverID}</td>
+        <td>${d?d.flag+' '+d.FirstName+' '+d.LastName:'?'}</td>
+        <td style="color:#3671C6;font-weight:700">${c.TeamID}</td>
+        <td>${t?t.emoji+' '+t.TeamName.split(' ').slice(0,2).join(' '):'?'}</td>
+        <td>${c.StartDate||'—'}</td><td style="color:#27f4d2">${c.EndDate||'—'}</td></tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function renderCarsTable(){
+  document.getElementById('carsTable').innerHTML=`<table class="data-table"><thead><tr><th>CarID</th><th>Team</th><th>Car Number</th><th>Chassis Code</th></tr></thead><tbody>
+    ${DB.cars.map(c=>{const t=DB.teams.find(x=>x.TeamID===c.TeamID);
+      return`<tr><td style="font-weight:700">#${c.CarID}</td>
+        <td>${t?t.emoji+' '+t.TeamName.split(' ').slice(0,2).join(' '):'?'}</td>
+        <td style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;">#${c.CarNumber}</td>
+        <td style="color:var(--accent);font-weight:700">${c.ChassisCode}</td></tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function renderCurrentContracts(){
+  const el=document.getElementById('currentContracts');if(!el)return;
+  el.innerHTML=DB.contracts.map(c=>{const d=DB.drivers.find(x=>x.DriverID===c.DriverID);const t=DB.teams.find(x=>x.TeamID===c.TeamID);
+    return`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;">
+      <span style="font-size:16px;">${d?d.flag:'?'}</span>
+      <span style="color:#fff;flex:1;">${d?d.FirstName+' '+d.LastName:'?'}</span>
+      <span style="color:var(--accent);font-size:11px;">→</span>
+      <span style="color:var(--grey);">${t?t.TeamName.split(' ').slice(0,2).join(' '):'?'}</span>
+    </div>`;}).join('');
+}
+
+function populateDropdowns(){
+  document.getElementById('txn1_driver').innerHTML=DB.drivers.map(d=>`<option value="${d.DriverID}">${d.flag} ${d.FirstName} ${d.LastName} (#${d.DriverNumber})</option>`).join('');
+  document.getElementById('txn1_team').innerHTML=DB.teams.map(t=>`<option value="${t.TeamID}">${t.emoji} ${t.TeamName.split(' ').slice(0,2).join(' ')}</option>`).join('');
+}
+
+// TXN 1 — Sign Driver
+async function runTxn1(){
+  setBtn('txn1_btn',true);document.getElementById('txn1_log').innerHTML='';
+  try{
+    const r=await apiFetch('/txn/sign_driver',{method:'POST',body:JSON.stringify({
+      driver_id:Number(document.getElementById('txn1_driver').value),
+      team_id:Number(document.getElementById('txn1_team').value),
+      start_date:document.getElementById('txn1_start').value,
+      end_date:document.getElementById('txn1_end').value||null,
+    })});
+    renderSteps('txn1_steps',r.steps||[]);
+    txnLog('txn1_log','✅ COMMITTED — Contract #'+(r.contract?.ContractID||'?')+' saved to MySQL','ok');
+    if(r.t2_fired)txnLog('txn1_log','⚡ Trigger T2 fired — EndDate auto-set to '+r.contract?.EndDate,'warn');
+    await loadAll();
+  }catch(e){
+    const err=e.data||{steps:[],error:e.message};
+    if(err.steps?.length)renderSteps('txn1_steps',err.steps);
+    txnLog('txn1_log','❌ ROLLED BACK — '+(err.error||e.message),'err');
+  }
+  setBtn('txn1_btn',false);
+}
+
+// TXN 3 — Register Weekend
+async function runTxn3(){
+  const checks=document.querySelectorAll('#txn3_checks input[type=checkbox]');
+  const stypes=['Practice 1','Practice 2','Practice 3','Qualifying','Race'];
+  const selected=stypes.filter((_,i)=>checks[i]?.checked);
+  setBtn('txn3_btn',true);document.getElementById('txn3_log').innerHTML='';
+  try{
+    const r=await apiFetch('/txn/register_weekend',{method:'POST',body:JSON.stringify({
+      name:document.getElementById('txn3_name').value,
+      circuit:document.getElementById('txn3_circuit').value,
+      flag:document.getElementById('txn3_flag').value||'🏁',
+      start_date:document.getElementById('txn3_start').value,
+      end_date:document.getElementById('txn3_end').value,
+      session_types:selected,
+      force_fail:document.getElementById('txn3_fail').checked,
+    })});
+    renderSteps('txn3_steps',r.steps||[]);
+    txnLog('txn3_log','✅ COMMITTED — Weekend #'+r.weekend_id+' + '+r.session_ids?.length+' sessions saved','ok');
+    await loadAll();
+  }catch(e){
+    const err=e.data||{steps:[],error:e.message};
+    if(err.steps?.length)renderSteps('txn3_steps',err.steps);
+    txnLog('txn3_log','❌ ROLLED BACK — '+(err.error||e.message)+(err.rolled_back?' (DB unchanged — atomicity confirmed)':''),'err');
+  }
+  setBtn('txn3_btn',false);
+}
+
+loadAll().catch(e=>console.error('Load error:',e));
+</script>
+</body>
+</html>
