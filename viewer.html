@@ -227,10 +227,24 @@ function showPage(id) {
 function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
 function mrow(l,v){return`<div class="modal-row"><span class="modal-label">${l}</span><span class="modal-val">${v}</span></div>`;}
 
-const POINTS = {
-  driver:[{pos:1,dID:1,pts:0},{pos:2,dID:2,pts:0},{pos:3,dID:4,pts:0},{pos:4,dID:3,pts:0},{pos:5,dID:5,pts:0},{pos:6,dID:6,pts:0}],
-  constructor:[{pos:1,tID:1,pts:0},{pos:2,tID:2,pts:0},{pos:3,tID:3,pts:0},{pos:4,tID:4,pts:0},{pos:5,tID:5,pts:0}],
+// 2025 Completed race results — top 10 by finishing position (Driver IDs)
+const F1_2025 = {
+  1:[2,1,3,4,7,9,5,8,14,13], // AUS: Piastri
+  2:[1,5,2,3,4,7,9,6,14,11], // CHN: Norris
+  3:[5,1,4,2,3,7,9,6,10,17], // JPN: Verstappen
+  4:[1,3,2,4,5,7,14,13,9,6], // BHR: Norris
+  5:[2,1,7,5,3,4,9,14,6,15], // SAU: Piastri
+  6:[1,2,3,4,5,7,9,14,6,10], // MIA: Norris
+  7:[3,4,1,2,5,7,9,14,6,8],  // EMI: Leclerc
+  8:[3,2,9,4,1,5,7,14,10,13],// MON: Leclerc
+  9:[1,5,2,4,3,7,9,14,6,8],  // ESP: Norris
+  10:[5,1,7,4,2,3,9,14,6,15],// CAN: Verstappen
 };
+const PTS = [25,18,15,12,10,8,6,4,2,1];
+function driverPts(){const p={};Object.values(F1_2025).forEach(o=>o.forEach((d,i)=>p[d]=(p[d]||0)+PTS[i]));return p;}
+function constructorPts(){const dp=driverPts(),tp={};Object.entries(dp).forEach(([d,p])=>{const c=DB.contracts.find(x=>x.DriverID==d);if(c)tp[c.TeamID]=(tp[c.TeamID]||0)+p;});return tp;}
+function raceWins(){const w={};Object.values(F1_2025).forEach(o=>{w[o[0]]=(w[o[0]]||0)+1;});return w;}
+function raceName(sessionID){const s=DB.sessions.find(x=>x.SessionID===sessionID);const w=s?DB.weekends.find(x=>x.WeekendID===s.WeekendID):null;return w?w.flag+' '+w.name:'—';}
 
 let DB = {};
 
@@ -257,21 +271,25 @@ function renderSchedule() {
     </div>`).join('');
 }
 
-function renderStandings() {
-  document.getElementById('driverStandings').innerHTML=POINTS.driver.map(p=>{
-    const d=DB.drivers.find(x=>x.DriverID===p.dID);
-    const c=DB.contracts.find(x=>x.DriverID===p.dID);
+function renderStandings(){
+  const dp=driverPts(), tp=constructorPts(), wins=raceWins();
+  const drank=Object.entries(dp).sort((a,b)=>b[1]-a[1]).map(([d,p],i)=>({pos:i+1,dID:+d,pts:p}));
+  document.getElementById('driverStandings').innerHTML=drank.slice(0,15).map(({pos,dID,pts})=>{
+    const d=DB.drivers.find(x=>x.DriverID===dID);
+    const c=DB.contracts.find(x=>x.DriverID===dID);
     const t=c?DB.teams.find(x=>x.TeamID===c.TeamID):null;
     if(!d)return'';
-    return`<div class="srow"><div class="spos ${p.pos<=3?'top':''}">${p.pos}</div>
-      <div><div class="sname"><span class="tbar" style="background:${t?t.color:'#666'}"></span>${d.FirstName} ${d.LastName}</div><div class="steam">${t?t.TeamName:'—'}</div></div>
-      <div class="spts">${p.pts} <span>PTS</span></div></div>`;
+    return`<div class="srow"><div class="spos ${pos<=3?'top':''}">${pos}</div>
+      <div><div class="sname"><span class="tbar" style="background:${t?t.color:'#666'}"></span>${d.FirstName} ${d.LastName}</div>
+      <div class="steam">${t?t.TeamName:'—'} ${wins[dID]?'· '+wins[dID]+'W':''}</div></div>
+      <div class="spts">${pts} <span>PTS</span></div></div>`;
   }).join('');
-  document.getElementById('constructorStandings').innerHTML=POINTS.constructor.map(p=>{
-    const t=DB.teams.find(x=>x.TeamID===p.tID);if(!t)return'';
-    return`<div class="srow"><div class="spos ${p.pos<=3?'top':''}">${p.pos}</div>
+  const trank=Object.entries(tp).sort((a,b)=>b[1]-a[1]).map(([tid,p],i)=>({pos:i+1,tID:+tid,pts:p}));
+  document.getElementById('constructorStandings').innerHTML=trank.slice(0,10).map(({pos,tID,pts})=>{
+    const t=DB.teams.find(x=>x.TeamID===tID);if(!t)return'';
+    return`<div class="srow"><div class="spos ${pos<=3?'top':''}">${pos}</div>
       <div><div class="sname"><span class="tbar" style="background:${t.color}"></span>${t.TeamName.split(' ').slice(0,2).join(' ')}</div></div>
-      <div class="spts">${p.pts} <span>PTS</span></div></div>`;
+      <div class="spts">${pts} <span>PTS</span></div></div>`;
   }).join('');
 }
 
@@ -321,47 +339,94 @@ function renderResults() {
   }).join('');
 }
 
-function renderIncidents() {
-  document.getElementById('incidentsContainer').innerHTML=DB.incidents.map(inc=>{
-    const s=DB.sessions.find(x=>x.SessionID===inc.SessionID);
-    const w=s?DB.weekends.find(x=>x.WeekendID===s.WeekendID):null;
-    const pen=DB.penalties.find(p=>p.IncidentID===inc.IncidentID);
-    const sc=inc.Severity==='High'?'sev-high':inc.Severity==='Medium'?'sev-med':'sev-low';
-    return`<div class="incident-card" style="border-left-color:${inc.Severity==='High'?'#ff4444':inc.Severity==='Medium'?'#ff9900':'#27f4d2'}">
-      <div>
-        <div class="inc-desc">${inc.Description}</div>
-        <div class="inc-meta">${w?w.flag+' '+w.name:''} · Lap ${inc.LapNo} · ${s?s.SessionType:''}
-          ${pen?` · <strong style="color:#ff9900">Penalty: ${pen.PenaltyType} (${pen.PenaltyValue})</strong>`:' · No penalty'}</div>
+function renderIncidents(){
+  // Group incidents by race
+  const raceSess=DB.sessions.filter(s=>s.SessionType==='Race');
+  let html='';
+  raceSess.forEach(s=>{
+    const w=DB.weekends.find(x=>x.WeekendID===s.WeekendID);
+    const incs=DB.incidents.filter(i=>i.SessionID===s.SessionID);
+    if(!incs.length)return;
+    html+=`<div style="margin-bottom:24px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;text-transform:uppercase;color:#fff;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--red);display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px">${w?w.flag:''}</span>
+        <span>${w?w.name:''}</span>
+        <span style="font-size:11px;color:var(--grey);font-weight:600;text-transform:none;">${w?fmtDate(w.EndDate):''}</span>
       </div>
-      <span class="sev-badge ${sc}">${inc.Severity}</span>
+      ${incs.map(inc=>{
+        const pen=DB.penalties.find(p=>p.IncidentID===inc.IncidentID);
+        const d=DB.drivers.find(x=>x.DriverID===inc.DriverID);
+        const sc=inc.Severity==='High'?'sev-high':inc.Severity==='Medium'?'sev-med':'sev-low';
+        return`<div class="incident-card" style="border-left-color:${inc.Severity==='High'?'#ff4444':inc.Severity==='Medium'?'#ff9900':'#27f4d2'}">
+          <div>
+            <div class="inc-desc">${inc.Description}</div>
+            <div class="inc-meta">${d?d.flag+' '+d.FirstName+' '+d.LastName:'—'} · Lap ${inc.LapNo}
+              ${pen?` · <strong style="color:#ff9900">⚖ ${pen.PenaltyType} (${pen.PenaltyValue})</strong>`:' · <span style="color:#8f8f9c">No penalty</span>'}</div>
+          </div>
+          <span class="sev-badge ${sc}">${inc.Severity}</span>
+        </div>`;
+      }).join('')}
     </div>`;
-  }).join('');
+  });
+  document.getElementById('incidentsContainer').innerHTML=html||'<div style="color:var(--grey);text-align:center;padding:40px">No incidents recorded</div>';
 }
 
-function renderPitStops() {
-  document.getElementById('pitstopsContainer').innerHTML=`<table class="ps-table">
-    <thead><tr><th>Driver</th><th>Pit #</th><th>Lap</th><th>Duration</th><th>Tyre</th></tr></thead>
-    <tbody>${DB.pitStops.sort((a,b)=>a.LapNo-b.LapNo).map(p=>{
-      const d=DB.drivers.find(x=>x.DriverID===p.DriverID);
-      const tyreClass=p.TyreCompound==='Soft'?'color:#ff3333':p.TyreCompound==='Medium'?'color:#ffcc00':'color:#aaa';
-      return`<tr><td>${d?d.flag+' '+d.FirstName+' '+d.LastName:'—'}</td><td>${p.PitNo}</td><td>${p.LapNo}</td>
-        <td style="font-weight:700;color:${p.DurationMS<2300?'#27F4D2':'#fff'}">${(p.DurationMS/1000).toFixed(3)}s ${p.DurationMS<2300?'⚡':''}</td>
-        <td style="${tyreClass};font-weight:700">${p.TyreCompound}</td></tr>`;
-    }).join('')}</tbody></table>`;
+function renderPitStops(){
+  const raceSess=DB.sessions.filter(s=>s.SessionType==='Race');
+  let html='';
+  raceSess.forEach(s=>{
+    const w=DB.weekends.find(x=>x.WeekendID===s.WeekendID);
+    const pits=DB.pitStops.filter(p=>p.SessionID===s.SessionID).sort((a,b)=>a.LapNo-b.LapNo);
+    if(!pits.length)return;
+    html+=`<div style="margin-bottom:28px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;text-transform:uppercase;color:#fff;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--red);display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px">${w?w.flag:''}</span>
+        <span>${w?w.name:''}</span>
+        <span style="font-size:11px;color:var(--grey);font-weight:600;text-transform:none">${w?fmtDate(w.EndDate):''}</span>
+      </div>
+      <table class="ps-table"><thead><tr><th>Driver</th><th>Pit #</th><th>Lap</th><th>Duration</th><th>Tyre</th></tr></thead>
+      <tbody>${pits.map(p=>{
+        const d=DB.drivers.find(x=>x.DriverID===p.DriverID);
+        const tc=p.TyreCompound==='Soft'?'color:#ff3333':p.TyreCompound==='Medium'?'color:#ffcc00':'color:#aaa';
+        return`<tr><td>${d?d.flag+' '+d.FirstName+' '+d.LastName:'—'}</td><td>${p.PitNo}</td><td>${p.LapNo}</td>
+          <td style="font-weight:700;color:${p.DurationMS<2300?'#27F4D2':'#fff'}">${(p.DurationMS/1000).toFixed(3)}s ${p.DurationMS<2300?'⚡':''}</td>
+          <td style="${tc};font-weight:700">${p.TyreCompound}</td></tr>`;
+      }).join('')}</tbody></table></div>`;
+  });
+  document.getElementById('pitstopsContainer').innerHTML=html||'<div style="color:var(--grey);padding:20px">No pit stop data</div>';
 }
 
-function renderLapTimes() {
-  const laps=DB.lapTimes.filter(l=>l.SessionID===1&&l.DriverID===1).sort((a,b)=>a.LapNo-b.LapNo);
-  if(!laps.length){document.getElementById('laptimesContainer').innerHTML='<div style="color:var(--grey)">No lap time data available</div>';return;}
+function renderLapTimes(){
+  const raceSess=DB.sessions.filter(s=>s.SessionType==='Race').filter(s=>DB.lapTimes.some(l=>l.SessionID===s.SessionID));
+  if(!raceSess.length){document.getElementById('laptimesContainer').innerHTML='<div style="color:var(--grey)">No lap time data yet</div>';return;}
+  const sel='background:#15151e;border:1px solid #2e2e3e;color:#fff;padding:8px 12px;font-family:"Titillium Web",sans-serif;font-size:13px;outline:none;';
+  document.getElementById('laptimesContainer').innerHTML=`
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+      <select id="ltRaceSel" onchange="updateLapChart()" style="${sel}">
+        ${raceSess.map(s=>{const w=DB.weekends.find(x=>x.WeekendID===s.WeekendID);return`<option value="${s.SessionID}">${w?w.flag+' '+w.name:'Race'}</option>`;}).join('')}
+      </select>
+      <select id="ltDrvSel" onchange="updateLapChart()" style="${sel}">
+        ${DB.drivers.map(d=>`<option value="${d.DriverID}">${d.flag} #${d.DriverNumber} ${d.FirstName} ${d.LastName}</option>`).join('')}
+      </select>
+    </div>
+    <div id="ltChart"></div>`;
+  updateLapChart();
+}
+function updateLapChart(){
+  const sid=Number(document.getElementById('ltRaceSel')?.value);
+  const did=Number(document.getElementById('ltDrvSel')?.value);
+  if(!sid||!did)return;
+  const laps=DB.lapTimes.filter(l=>l.SessionID===sid&&l.DriverID===did).sort((a,b)=>a.LapNo-b.LapNo);
+  const el=document.getElementById('ltChart');if(!el)return;
+  if(!laps.length){el.innerHTML='<div style="color:var(--grey);padding:16px;text-align:center">No laps for this driver in this race</div>';return;}
   const toMs=t=>{const[m,s]=t.split(':');return parseFloat(m)*60000+parseFloat(s)*1000;};
   const times=laps.map(l=>toMs(l.LapTime));
-  const min=Math.min(...times),max=Math.max(...times),fastIdx=times.indexOf(min);
-  document.getElementById('laptimesContainer').innerHTML=`<div style="margin-bottom:10px;font-size:12px;color:var(--grey)">Verstappen · Australian GP · Race · ${laps.length} laps recorded</div>
-    ${laps.map((l,i)=>{const pct=100-((times[i]-min)/(max-min)*65);return`<div class="lap-row ${i===fastIdx?'fastest':''}">
+  const mn=Math.min(...times),mx=Math.max(...times),fi=times.indexOf(mn);
+  el.innerHTML='<div style="font-size:11px;color:var(--grey);margin-bottom:10px">'+laps.length+' laps · Fastest: '+laps[fi].LapTime+'</div>'+
+    laps.map((l,i)=>{const pct=100-((times[i]-mn)/((mx-mn)||1)*65);return`<div class="lap-row ${i===fi?'fastest':''}">
       <div class="lap-num">L${l.LapNo}</div>
-      <div class="lap-bar-wrap"><div class="lap-bar" style="width:${pct}%;background:${i===fastIdx?'#a020f0':'#3671C6'}"></div></div>
-      <div class="lap-time">${l.LapTime}${i===fastIdx?' 💜':''}</div>
-    </div>`;}).join('')}`;
+      <div class="lap-bar-wrap"><div class="lap-bar" style="width:${pct}%;background:${i===fi?'#a020f0':'#3671C6'}"></div></div>
+      <div class="lap-time">${l.LapTime}${i===fi?' 💜':''}</div></div>`;}).join('');
 }
 
 // Modals

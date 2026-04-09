@@ -70,7 +70,7 @@ main{flex:1;overflow-y:auto;padding:28px;}
   </a>
   <div class="header-right">
     <div class="role-tag">📊 Analyst</div>
-    <a href="viewer.html" class="btn-sm">↗ Public View</a>
+    
     <a href="login.html" class="btn-sm">Switch Role</a>
     <button onclick="Auth.logout()" class="btn-sm">Sign Out</button>
   </div>
@@ -86,8 +86,7 @@ main{flex:1;overflow-y:auto;padding:28px;}
     <a class="sb-link" onclick="showPage('driversdata')"><span class="ico">👤</span>Drivers</a>
     <a class="sb-link" onclick="showPage('incidents')"><span class="ico">⚠️</span>Incident Report</a>
     <a class="sb-link" onclick="showPage('contracts')"><span class="ico">📝</span>N:N Contracts</a>
-    <div class="sb-section">Navigate</div>
-    <a class="sb-link" href="viewer.html"><span class="ico">🏁</span>Race Schedule</a>
+    
   </nav>
 
   <main>
@@ -100,7 +99,7 @@ main{flex:1;overflow-y:auto;padding:28px;}
         <div class="card"><div class="card-title">Best Pit Stop Per Driver</div><div id="pitRanking"></div></div>
         <div class="card"><div class="card-title">Incident Severity Breakdown</div><div id="incidentBreakdown"></div></div>
       </div>
-      <div class="card"><div class="card-title">All Pit Stops — Race 1</div><div id="allPits"></div></div>
+      <div class="card"><div class="card-title">Fastest Pit Stop Per Race</div><div id="allPits"></div></div>
     </div>
 
     <!-- PIT STOPS -->
@@ -162,6 +161,11 @@ function showPage(id){
   event?.currentTarget?.classList.add('active');
 }
 
+// 2025 Race results for standings
+const F1_2025={1:[2,1,3,4,7,9,5,8,14,13],2:[1,5,2,3,4,7,9,6,14,11],3:[5,1,4,2,3,7,9,6,10,17],4:[1,3,2,4,5,7,14,13,9,6],5:[2,1,7,5,3,4,9,14,6,15],6:[1,2,3,4,5,7,9,14,6,10],7:[3,4,1,2,5,7,9,14,6,8],8:[3,2,9,4,1,5,7,14,10,13],9:[1,5,2,4,3,7,9,14,6,8],10:[5,1,7,4,2,3,9,14,6,15]};
+const PTS=[25,18,15,12,10,8,6,4,2,1];
+function driverPts(){const p={};Object.values(F1_2025).forEach(o=>o.forEach((d,i)=>p[d]=(p[d]||0)+PTS[i]));return p;}
+function getRaceName(sessionID){const s=DB.sessions.find(x=>x.SessionID===sessionID);const w=s?DB.weekends.find(x=>x.WeekendID===s.WeekendID):null;return w?(w.flag+' '+w.name):'—';}
 let DB={};
 
 async function loadAll(){
@@ -179,11 +183,11 @@ function renderOverview(){
   document.getElementById('statGrid').innerHTML=[
     {v:s.total_drivers,l:'Active Drivers'},{v:s.total_teams,l:'Teams'},{v:s.total_laps,l:'Lap Records'},
     {v:s.total_pit_stops,l:'Pit Stops'},{v:s.total_incidents,l:'Race Incidents'},{v:s.total_penalties,l:'Penalties'},
-    {v:s.fastest_pit_ms?(s.fastest_pit_ms/1000).toFixed(3)+'s':'—',l:'Fastest Pit Stop'},
+    {v:s.fastest_pit_ms?(s.fastest_pit_ms/1000).toFixed(3)+'s':'—',l:'Fastest Single Pit'},
     {v:s.fastest_lap||'—',l:'Fastest Lap Time'},
   ].map(x=>`<div class="stat-card"><div class="stat-val">${x.v??'—'}</div><div class="stat-lbl">${x.l}</div></div>`).join('');
 
-  // Pit ranking
+  // Pit ranking per driver
   document.getElementById('pitRanking').innerHTML=(s.pit_ranking||[]).map((r,i)=>`
     <div class="pit-row">
       <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:${i<3?'var(--accent)':'var(--grey)'};">${i+1}</span>
@@ -191,7 +195,7 @@ function renderOverview(){
       <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:${r.best_ms<2300?'#27f4d2':'#fff'}">${(r.best_ms/1000).toFixed(3)}s ${r.best_ms<2300?'⚡':''}</span>
     </div>`).join('');
 
-  // Incident breakdown
+  // Incident severity breakdown
   const total=(s.incident_severity||[]).reduce((a,x)=>a+x.cnt,0)||1;
   document.getElementById('incidentBreakdown').innerHTML=(s.incident_severity||[]).map(r=>{
     const sc=r.Severity==='High'?'sev-high':r.Severity==='Medium'?'sev-med':'sev-low';
@@ -203,15 +207,22 @@ function renderOverview(){
       <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:#fff;">${r.cnt}</span>
     </div>`;}).join('');
 
-  // All pits table
-  document.getElementById('allPits').innerHTML=`<table class="data-table"><thead><tr><th>Driver</th><th>Pit#</th><th>Lap</th><th>Duration</th><th>Tyre</th></tr></thead><tbody>
-    ${DB.pitStops.sort((a,b)=>a.DurationMS-b.DurationMS).map(p=>{
-      const d=DB.drivers.find(x=>x.DriverID===p.DriverID);
-      const tc=p.TyreCompound==='Soft'?'color:#ff3333':p.TyreCompound==='Medium'?'color:#ffcc00':'color:#aaa';
-      return`<tr><td>${d?d.flag+' '+d.FirstName+' '+d.LastName:'—'}</td><td>${p.PitNo}</td><td>${p.LapNo}</td>
-        <td style="font-weight:700;color:${p.DurationMS<2300?'#27f4d2':'#fff'}">${(p.DurationMS/1000).toFixed(3)}s</td>
-        <td style="${tc};font-weight:700">${p.TyreCompound}</td></tr>`;
-    }).join('')}</tbody></table>`;
+  // Fastest pit stop per race
+  const raceSess=DB.sessions.filter(s=>s.SessionType==='Race');
+  const fastPitsHTML = raceSess.map(sess=>{
+    const w=DB.weekends.find(x=>x.WeekendID===sess.WeekendID);
+    const pits=DB.pitStops.filter(p=>p.SessionID===sess.SessionID);
+    if(!pits.length)return'';
+    const best=pits.reduce((a,b)=>a.DurationMS<b.DurationMS?a:b);
+    const d=DB.drivers.find(x=>x.DriverID===best.DriverID);
+    return`<div style="display:grid;grid-template-columns:28px 1fr auto auto;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:18px">${w?w.flag:'🏁'}</span>
+      <span style="font-size:12px;color:rgba(255,255,255,.7);">${w?w.name.replace(' Grand Prix',' GP'):''}</span>
+      <span style="font-size:12px;color:var(--grey);">${d?d.flag+' '+d.LastName:'—'}</span>
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:17px;color:${best.DurationMS<2300?'#27f4d2':'#fff'}">${(best.DurationMS/1000).toFixed(3)}s</span>
+    </div>`;
+  }).join('');
+  document.getElementById('allPits').innerHTML = fastPitsHTML || '<div style="color:var(--grey)">No pit data</div>';
 }
 
 function renderPitDetail(){
@@ -241,26 +252,44 @@ function renderPitDetail(){
 }
 
 function renderLapChart(){
+  const raceSess=DB.sessions.filter(s=>s.SessionType==='Race').filter(s=>DB.lapTimes.some(l=>l.SessionID===s.SessionID));
+  const selStyle='background:#15151e;border:1px solid #2e2e3e;color:#fff;padding:8px 12px;font-family:"Titillium Web",sans-serif;font-size:13px;outline:none;';
+  document.getElementById('lapChartContainer').innerHTML=`
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+      <select id="acRaceSel" onchange="updateAnalystLapChart()" style="${selStyle}">
+        ${raceSess.map(s=>{const w=DB.weekends.find(x=>x.WeekendID===s.WeekendID);return`<option value="${s.SessionID}">${w?w.flag+' '+w.name:'Race'}</option>`;}).join('')}
+      </select>
+      <select id="acDrvSel" onchange="updateAnalystLapChart()" style="${selStyle}">
+        <option value="all">All Drivers</option>
+        ${DB.drivers.map(d=>`<option value="${d.DriverID}">${d.flag} #${d.DriverNumber} ${d.FirstName} ${d.LastName}</option>`).join('')}
+      </select>
+    </div>
+    <div id="acLapChart"></div>`;
+  updateAnalystLapChart();
+}
+function updateAnalystLapChart(){
+  const sid=Number(document.getElementById('acRaceSel')?.value);
+  const drvVal=document.getElementById('acDrvSel')?.value;
   const toMs=t=>{const[m,s]=t.split(':');return parseFloat(m)*60000+parseFloat(s)*1000;};
-  const driverGroups={};
-  DB.lapTimes.filter(l=>l.SessionID===1).forEach(l=>{
-    if(!driverGroups[l.DriverID])driverGroups[l.DriverID]=[];
-    driverGroups[l.DriverID].push(l);
-  });
-  const allMs=DB.lapTimes.filter(l=>l.LapTime&&l.SessionID===1).map(l=>toMs(l.LapTime));
-  const globalMin=allMs.length?Math.min(...allMs):90000, globalMax=allMs.length?Math.max(...allMs):92000;
-  const driverColors=['#3671C6','#E8002D','#FF8000','#27F4D2','#ff9900','#a020f0'];
-  document.getElementById('lapChartContainer').innerHTML=Object.entries(driverGroups).map(([dID,laps],idx)=>{
-    const d=DB.drivers.find(x=>x.DriverID==dID);const sorted=laps.sort((a,b)=>a.LapNo-b.LapNo);
-    const times=sorted.map(l=>toMs(l.LapTime));const fastIdx=times.indexOf(Math.min(...times));
-    const col=driverColors[idx%driverColors.length];
-    return`<div style="margin-bottom:24px;"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;color:#fff;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid ${col};">
-      ${d?d.flag+' '+d.FirstName+' '+d.LastName:'?'} — ${sorted.length} laps</div>
-      ${sorted.map((l,i)=>{const pct=100-((times[i]-globalMin)/(globalMax-globalMin)*60)||40;return`<div class="lap-row ${i===fastIdx?'fastest':''}">
+  const allMs=DB.lapTimes.filter(l=>l.SessionID===sid&&l.LapTime).map(l=>toMs(l.LapTime));
+  const gMin=allMs.length?Math.min(...allMs):60000,gMax=allMs.length?Math.max(...allMs):120000;
+  const colors=['#3671C6','#E8002D','#FF8000','#27F4D2','#ff9900','#a020f0','#52E252','#6692FF','#B6BABD','#0093CC'];
+  let driverIDs=drvVal==='all'?[...new Set(DB.lapTimes.filter(l=>l.SessionID===sid).map(l=>l.DriverID))]:[Number(drvVal)];
+  const el=document.getElementById('acLapChart');
+  if(!driverIDs.length){el.innerHTML='<div style="color:var(--grey);padding:20px">No lap data for this selection</div>';return;}
+  el.innerHTML=driverIDs.map((dID,idx)=>{
+    const d=DB.drivers.find(x=>x.DriverID===dID);
+    const laps=DB.lapTimes.filter(l=>l.SessionID===sid&&l.DriverID===dID).sort((a,b)=>a.LapNo-b.LapNo);
+    if(!laps.length)return'';
+    const times=laps.map(l=>toMs(l.LapTime));
+    const fastIdx=times.indexOf(Math.min(...times));
+    const col=colors[idx%colors.length];
+    return`<div style="margin-bottom:20px;"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;color:#fff;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${col};">
+      ${d?d.flag+' '+d.FirstName+' '+d.LastName:'?'} — ${laps.length} laps · Fastest: ${laps[fastIdx]?.LapTime||'—'}</div>
+      ${laps.map((l,i)=>{const pct=100-((times[i]-gMin)/((gMax-gMin)||1)*60)||40;return`<div class="lap-row ${i===fastIdx?'fastest':''}">
         <div class="lap-num">L${l.LapNo}</div>
         <div class="lap-bar-wrap"><div class="lap-bar" style="width:${pct}%;background:${i===fastIdx?'#a020f0':col}"></div></div>
-        <div class="lap-time">${l.LapTime}${i===fastIdx?' 💜':''}</div>
-      </div>`;}).join('')}
+        <div class="lap-time">${l.LapTime}${i===fastIdx?' 💜':''}</div></div>`;}).join('')}
     </div>`;
   }).join('');
 }
@@ -279,17 +308,31 @@ function renderDriversData(){
 }
 
 function renderIncidentsData(){
-  document.getElementById('incidentsDataContainer').innerHTML=`<table class="data-table"><thead><tr><th>ID</th><th>Session</th><th>Lap</th><th>Description</th><th>Severity</th><th>Penalty</th></tr></thead><tbody>
-    ${DB.incidents.map(inc=>{
-      const s=DB.sessions.find(x=>x.SessionID===inc.SessionID);
-      const pen=DB.penalties.find(p=>p.IncidentID===inc.IncidentID);
-      const sc=inc.Severity==='High'?'sev-high':inc.Severity==='Medium'?'sev-med':'sev-low';
-      return`<tr><td style="font-family:'Barlow Condensed',sans-serif;font-weight:900">#${inc.IncidentID}</td>
-        <td>${s?s.SessionType:'—'}</td><td>${inc.LapNo}</td>
-        <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${inc.Description}</td>
-        <td><span class="sev-badge ${sc}">${inc.Severity}</span></td>
-        <td style="color:${pen?'#ff9900':'var(--grey)'}">${pen?pen.PenaltyType+' ('+pen.PenaltyValue+')':'No penalty'}</td></tr>`;
-    }).join('')}</tbody></table>`;
+  const raceSess=DB.sessions.filter(s=>s.SessionType==='Race');
+  let html='';
+  raceSess.forEach(sess=>{
+    const w=DB.weekends.find(x=>x.WeekendID===sess.WeekendID);
+    const incs=DB.incidents.filter(i=>i.SessionID===sess.SessionID);
+    if(!incs.length)return;
+    html+=`<div style="margin-bottom:24px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;color:#fff;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:10px;">
+        <span style="font-size:18px">${w?w.flag:''}</span><span>${w?w.name:''}</span>
+        <span style="font-size:11px;color:var(--grey);font-weight:400;text-transform:none;margin-left:4px">${incs.length} incident${incs.length>1?'s':''}</span>
+      </div>
+      <table class="data-table"><thead><tr><th>Driver</th><th>Lap</th><th>Severity</th><th>Description</th><th>Penalty</th></tr></thead><tbody>
+      ${incs.map(inc=>{
+        const d=DB.drivers.find(x=>x.DriverID===inc.DriverID);
+        const pen=DB.penalties.find(p=>p.IncidentID===inc.IncidentID);
+        const sc=inc.Severity==='High'?'sev-high':inc.Severity==='Medium'?'sev-med':'sev-low';
+        return`<tr>
+          <td>${d?d.flag+' '+d.LastName:'—'}</td><td>${inc.LapNo}</td>
+          <td><span class="sev-badge ${sc}">${inc.Severity}</span></td>
+          <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${inc.Description}</td>
+          <td style="color:${pen?'#ff9900':'var(--grey)'};font-size:11px;">${pen?pen.PenaltyType+' ('+pen.PenaltyValue+')':'No penalty'}</td></tr>`;
+      }).join('')}
+      </tbody></table></div>`;
+  });
+  document.getElementById('incidentsDataContainer').innerHTML=html||'<div style="color:var(--grey)">No incidents recorded</div>';
 }
 
 function renderContracts(){

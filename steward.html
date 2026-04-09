@@ -80,7 +80,7 @@ main{flex:1;overflow-y:auto;padding:28px;}
   </a>
   <div class="header-right">
     <div class="role-tag">⚖️ Race Steward</div>
-    <a href="analyst.html" class="btn-sm">↗ Analytics</a>
+    
     <a href="login.html" class="btn-sm">Switch Role</a>
     <button onclick="Auth.logout()" class="btn-sm">Sign Out</button>
   </div>
@@ -94,16 +94,14 @@ main{flex:1;overflow-y:auto;padding:28px;}
     <a class="sb-link" onclick="showPage('penalties')"><span class="ico">🚫</span>Penalties Issued</a>
     <div class="sb-section">Transactions (Task 6)</div>
     <a class="sb-link" onclick="showPage('txn-incident')"><span class="ico">⚡</span>Raise Incident+Penalty</a>
-    <div class="sb-section">Reference</div>
-    <a class="sb-link" href="viewer.html"><span class="ico">🏁</span>Race Schedule</a>
-    <a class="sb-link" href="analyst.html"><span class="ico">📊</span>Analytics</a>
+
   </nav>
 
   <main>
     <!-- OVERVIEW -->
     <div class="page active" id="page-overview">
       <div class="sec-head"><h2 class="sec-title">Steward <em>Overview</em></h2><div class="sec-line"></div></div>
-      <div class="alert-banner">⚠ You are logged in as Race Steward. You may review all incidents and issue penalties. Use the Transactions panel to raise new incidents atomically.</div>
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap;"><button onclick="openInvestigations()" style="background:#ff9900;color:#000;border:none;padding:10px 24px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;clip-path:polygon(0 0,94% 0,100% 50%,94% 100%,0 100%);">⚖️ Open Investigations</button><span style="font-size:12px;color:var(--grey);" id="openInvCount"></span></div><div class="alert-banner">⚠ You are logged in as Race Steward. You may review all incidents and issue penalties. Use the Transactions panel to raise new incidents atomically.</div>
       <div class="db-banner"><div class="db-dot"></div>MySQL · INCIDENT + PENALTY + STEWARD tables</div>
       <div class="two-col">
         <div>
@@ -219,49 +217,81 @@ async function loadAll(){
 }
 
 function renderOverview(){
-  document.getElementById('overviewIncidents').innerHTML=DB.incidents.map(inc=>{
-    const pen=DB.penalties.find(p=>p.IncidentID===inc.IncidentID);
-    const s=DB.sessions.find(x=>x.SessionID===inc.SessionID);
-    const w=s?DB.weekends.find(x=>x.WeekendID===s.WeekendID):null;
-    const sc=inc.Severity==='High'?'sev-high':inc.Severity==='Medium'?'sev-med':'sev-low';
-    return`<div class="inc-card" style="border-left-color:${inc.Severity==='High'?'#ff4444':inc.Severity==='Medium'?'#ff9900':'#27f4d2'}">
-      <div>
-        <div class="inc-desc">${String(inc.Description||'').substring(0,80)}${(inc.Description||'').length>80?'…':''}</div>
-        <div class="inc-meta">Lap ${inc.LapNo} · ${s?s.SessionType:''} · ${w?w.flag+' '+w.name:''}</div>
-        <div style="font-size:11px;margin-top:5px;color:${pen?'#27f4d2':'#ff9900'}">${pen?'✅ Penalty: '+pen.PenaltyType+' ('+pen.PenaltyValue+')':'⏳ Awaiting decision'}</div>
+  // Incidents grouped by race, with race name
+  const raceSess=DB.sessions.filter(s=>s.SessionType==='Race');
+  let incHTML='';
+  raceSess.forEach(sess=>{
+    const w=DB.weekends.find(x=>x.WeekendID===sess.WeekendID);
+    const incs=DB.incidents.filter(i=>i.SessionID===sess.SessionID);
+    if(!incs.length)return;
+    incHTML+=`<div style="margin-bottom:16px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,153,0,.2);">
+        ${w?w.flag:'🏁'} ${w?w.name:''}
       </div>
-      <span class="sev-badge ${sc}">${inc.Severity}</span>
+      ${incs.map(inc=>{
+        const pen=DB.penalties.find(p=>p.IncidentID===inc.IncidentID);
+        const d=DB.drivers.find(x=>x.DriverID===inc.DriverID);
+        const sc=inc.Severity==='High'?'sev-high':inc.Severity==='Medium'?'sev-med':'sev-low';
+        return`<div class="inc-card" style="border-left-color:${inc.Severity==='High'?'#ff4444':inc.Severity==='Medium'?'#ff9900':'#27f4d2'}">
+          <div>
+            <div class="inc-desc">${String(inc.Description||'').substring(0,80)}${(inc.Description||'').length>80?'…':''}</div>
+            <div class="inc-meta">${d?d.flag+' '+d.FirstName+' '+d.LastName:'—'} · Lap ${inc.LapNo}</div>
+            <div style="font-size:11px;margin-top:5px;color:${pen?'#27f4d2':'#ff9900'}">${pen?'✅ '+pen.PenaltyType+' ('+pen.PenaltyValue+')':'⏳ Awaiting decision'}</div>
+          </div>
+          <span class="sev-badge ${sc}">${inc.Severity}</span>
+        </div>`;}).join('')}
     </div>`;
-  }).join('')||'<div style="color:var(--grey);font-size:13px;">No incidents recorded.</div>';
+  });
+  document.getElementById('overviewIncidents').innerHTML=incHTML||'<div style="color:var(--grey);font-size:13px">No incidents recorded.</div>';
 
+  // Update open count badge
+  const openCount=DB.incidents.filter(i=>!DB.penalties.some(p=>p.IncidentID===i.IncidentID)).length;
+  const badge=document.getElementById('openInvCount');
+  if(badge)badge.textContent=openCount>0?openCount+' open investigation'+(openCount>1?'s':''):'All investigations closed';
+
+  // Penalties
   document.getElementById('overviewPenalties').innerHTML=DB.penalties.map(pen=>{
     const d=DB.drivers.find(x=>x.DriverID===pen.DriverID);
+    const inc=DB.incidents.find(x=>x.IncidentID===pen.IncidentID);
+    const s=inc?DB.sessions.find(x=>x.SessionID===inc.SessionID):null;
+    const w=s?DB.weekends.find(x=>x.WeekendID===s.WeekendID):null;
     return`<div class="pen-card">
       <div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:#fff;text-transform:uppercase;">${d?d.flag+' '+d.LastName:'?'}</div>
         <div style="font-size:12px;color:var(--grey);margin-top:2px;">${pen.PenaltyType} — ${pen.PenaltyValue}</div>
-        <div style="font-size:11px;color:#8f8f9c;margin-top:2px;">Incident #${pen.IncidentID}</div>
+        <div style="font-size:11px;color:var(--grey);margin-top:2px;">${w?w.flag+' '+w.name.replace(' Grand Prix',' GP'):'—'} · Incident #${pen.IncidentID}</div>
       </div>
       <span style="font-size:10px;font-weight:700;letter-spacing:.08em;padding:3px 9px;background:rgba(39,244,210,.1);color:#27f4d2;border:1px solid rgba(39,244,210,.25);">${pen.Status}</span>
     </div>`;
-  }).join('')||'<div style="color:var(--grey);font-size:13px;">No penalties issued.</div>';
+  }).join('')||'<div style="color:var(--grey);font-size:13px">No penalties issued.</div>';
 }
 
 function renderAllIncidents(){
-  document.getElementById('allIncidentsContainer').innerHTML=`<table class="data-table"><thead><tr><th>ID</th><th>Session</th><th>Driver</th><th>Lap</th><th>Severity</th><th>Description</th><th>Penalty</th></tr></thead><tbody>
-    ${DB.incidents.map(inc=>{
-      const s=DB.sessions.find(x=>x.SessionID===inc.SessionID);
-      const d=DB.drivers.find(x=>x.DriverID===inc.DriverID);
-      const pen=DB.penalties.find(p=>p.IncidentID===inc.IncidentID);
-      const sc=inc.Severity==='High'?'sev-high':inc.Severity==='Medium'?'sev-med':'sev-low';
-      return`<tr><td style="font-weight:700;color:var(--accent)">#${inc.IncidentID}</td>
-        <td>${s?s.SessionType:'—'}</td>
-        <td>${d?d.flag+' '+d.LastName:'—'}</td>
-        <td>${inc.LapNo}</td>
-        <td><span class="sev-badge ${sc}">${inc.Severity}</span></td>
-        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${inc.Description}</td>
-        <td style="color:${pen?'#ff9900':'var(--grey)'};font-size:11px;">${pen?pen.PenaltyType:'None'}</td></tr>`;
-    }).join('')}</tbody></table>`;
+  const raceSess=DB.sessions.filter(s=>s.SessionType==='Race');
+  let html='';
+  raceSess.forEach(sess=>{
+    const w=DB.weekends.find(x=>x.WeekendID===sess.WeekendID);
+    const incs=DB.incidents.filter(i=>i.SessionID===sess.SessionID);
+    if(!incs.length)return;
+    html+=`<div style="margin-bottom:24px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;color:#fff;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:10px;">
+        <span style="font-size:18px">${w?w.flag:''}</span><span>${w?w.name:''}</span>
+        <span style="font-size:11px;color:var(--grey);font-weight:400;text-transform:none">${incs.length} incident${incs.length>1?'s':''}</span>
+      </div>
+      <table class="data-table"><thead><tr><th>ID</th><th>Driver</th><th>Lap</th><th>Severity</th><th>Description</th><th>Penalty</th></tr></thead><tbody>
+      ${incs.map(inc=>{
+        const d=DB.drivers.find(x=>x.DriverID===inc.DriverID);
+        const pen=DB.penalties.find(p=>p.IncidentID===inc.IncidentID);
+        const sc=inc.Severity==='High'?'sev-high':inc.Severity==='Medium'?'sev-med':'sev-low';
+        return`<tr><td style="font-weight:700;color:var(--accent)">#${inc.IncidentID}</td>
+          <td>${d?d.flag+' '+d.LastName:'—'}</td><td>${inc.LapNo}</td>
+          <td><span class="sev-badge ${sc}">${inc.Severity}</span></td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${inc.Description}</td>
+          <td style="color:${pen?'#ff9900':'var(--grey)'};font-size:11px;">${pen?pen.PenaltyType:'None'}</td></tr>`;
+      }).join('')}
+      </tbody></table></div>`;
+  });
+  document.getElementById('allIncidentsContainer').innerHTML=html||'<div style="color:var(--grey)">No incidents</div>';
 }
 
 function renderAllPenalties(){
@@ -317,7 +347,125 @@ async function runTxn2(){
   setBtn('txn2_btn',false);
 }
 
+
+// ── INVESTIGATIONS WORKFLOW ────────────────────────────────────────
+let pendingPenaltyIncidentID = null;
+let pendingPenaltyDriverID = null;
+
+function openInvestigations(){
+  // Find all incidents without a penalty
+  const open=DB.incidents.filter(i=>!DB.penalties.some(p=>p.IncidentID===i.IncidentID));
+  if(!open.length){
+    document.getElementById('invList').innerHTML='<div style="color:#27f4d2;text-align:center;padding:30px;font-size:14px;">✅ No open investigations — all incidents have been reviewed.</div>';
+  } else {
+    document.getElementById('invList').innerHTML=open.map(inc=>{
+      const s=DB.sessions.find(x=>x.SessionID===inc.SessionID);
+      const w=s?DB.weekends.find(x=>x.WeekendID===s.WeekendID):null;
+      const d=DB.drivers.find(x=>x.DriverID===inc.DriverID);
+      const sc=inc.Severity==='High'?'#ff4444':inc.Severity==='Medium'?'#ff9900':'#27f4d2';
+      return`<div style="background:#15151e;border:1px solid #2e2e3e;border-left:4px solid ${sc};padding:16px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;">
+          <div>
+            <div style="font-size:10px;color:var(--grey);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">${w?w.flag+' '+w.name:'—'} · Lap ${inc.LapNo} · Incident #${inc.IncidentID}</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.85);margin-bottom:4px;">${inc.Description}</div>
+            <div style="font-size:12px;color:var(--grey);">${d?d.flag+' '+d.FirstName+' '+d.LastName:'Unknown driver'}</div>
+          </div>
+          <span style="padding:3px 9px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:${sc}22;color:${sc};border:1px solid ${sc}44;flex-shrink:0">${inc.Severity}</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button onclick="openPenaltyModal(${inc.IncidentID},${inc.DriverID||0})" style="background:rgba(255,153,0,.15);color:#ff9900;border:1px solid rgba(255,153,0,.4);padding:6px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(255,153,0,.3)'" onmouseout="this.style.background='rgba(255,153,0,.15)'">⚖️ Issue Penalty</button>
+          <button onclick="dismissIncident(${inc.IncidentID},${inc.DriverID||0})" style="background:rgba(39,244,210,.08);color:#27f4d2;border:1px solid rgba(39,244,210,.3);padding:6px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(39,244,210,.2)'" onmouseout="this.style.background='rgba(39,244,210,.08)'">✅ Dismiss</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('invOverlay').style.display='flex';
+}
+function closeInv(){document.getElementById('invOverlay').style.display='none';}
+
+function openPenaltyModal(incidentID, driverID){
+  pendingPenaltyIncidentID=incidentID;
+  pendingPenaltyDriverID=driverID;
+  const inc=DB.incidents.find(x=>x.IncidentID===incidentID);
+  const d=DB.drivers.find(x=>x.DriverID===driverID);
+  const s=inc?DB.sessions.find(x=>x.SessionID===inc?.SessionID):null;
+  const w=s?DB.weekends.find(x=>x.WeekendID===s.WeekendID):null;
+  document.getElementById('penModalIncInfo').innerHTML=`<strong style="color:#fff">Incident #${incidentID}</strong> · ${w?w.flag+' '+w.name:''}<br>${d?d.flag+' '+d.FirstName+' '+d.LastName:''} · Lap ${inc?inc.LapNo:'—'}<br><span style="font-size:11px">${inc?inc.Description:''}</span>`;
+  document.getElementById('penModalErr').style.display='none';
+  document.getElementById('penModalVal').value='';
+  document.getElementById('penaltyOverlay').style.display='flex';
+}
+function closePenModal(){document.getElementById('penaltyOverlay').style.display='none';}
+
+async function submitPenalty(){
+  const type=document.getElementById('penModalType').value;
+  const val=document.getElementById('penModalVal').value.trim()||'—';
+  if(!pendingPenaltyIncidentID||!pendingPenaltyDriverID){document.getElementById('penModalErr').style.display='block';document.getElementById('penModalErr').textContent='No driver associated with this incident.';return;}
+  try{
+    await apiFetch('/penalties',{method:'POST',body:JSON.stringify({
+      IncidentID:pendingPenaltyIncidentID,DriverID:pendingPenaltyDriverID,
+      PenaltyType:type,PenaltyValue:val,Status:'Applied'
+    })});
+    closePenModal();closeInv();await loadAll();
+    showToast('⚖️ Penalty issued: '+type+' ('+val+')','#ff9900');
+  }catch(e){document.getElementById('penModalErr').style.display='block';document.getElementById('penModalErr').textContent='Error: '+e.message;}
+}
+
+async function dismissIncident(incidentID, driverID){
+  if(!driverID||driverID===0){showToast('No driver to penalise — incident dismissed.','#27f4d2');return;}
+  try{
+    await apiFetch('/penalties',{method:'POST',body:JSON.stringify({
+      IncidentID:incidentID,DriverID:driverID,
+      PenaltyType:'Reprimand',PenaltyValue:'Dismissed — No Further Action',Status:'Applied'
+    })});
+    closeInv();await loadAll();
+    showToast('✅ Incident #'+incidentID+' dismissed','#27f4d2');
+  }catch(e){showToast('Error: '+e.message,'#ff4444');}
+}
+
+function showToast(msg,color='#27f4d2'){
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:24px;right:24px;z-index:99999;padding:12px 22px;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:14px;letter-spacing:.1em;text-transform:uppercase;background:'+color+';color:'+(color==='#27f4d2'?'#000':'#fff')+';clip-path:polygon(0 0,95% 0,100% 50%,95% 100%,0 100%);box-shadow:0 4px 20px rgba(0,0,0,.5);';
+  t.textContent=msg;document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .4s';setTimeout(()=>t.remove(),400);},3000);
+}
+
 loadAll().catch(e=>console.error('Load error:',e));
 </script>
+
+<!-- ── INVESTIGATIONS MODAL ── -->
+<div style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;" id="invOverlay" onclick="if(event.target===this)closeInv()">
+  <div style="background:#23232f;border:1px solid #2e2e3e;border-top:3px solid #ff9900;max-width:680px;width:95%;max-height:85vh;overflow-y:auto;padding:28px;position:relative;">
+    <button onclick="closeInv()" style="position:absolute;top:14px;right:14px;background:none;border:none;color:#8f8f9c;font-size:22px;cursor:pointer;">✕</button>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;text-transform:uppercase;color:#fff;margin-bottom:6px;">⚖️ Open Investigations</div>
+    <div style="font-size:12px;color:#8f8f9c;margin-bottom:20px;">Review each incident and either dismiss it or issue a penalty.</div>
+    <div id="invList"></div>
+  </div>
+</div>
+
+<!-- ── PENALTY ISSUE MODAL ── -->
+<div style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10000;align-items:center;justify-content:center;" id="penaltyOverlay">
+  <div style="background:#23232f;border:1px solid #2e2e3e;border-top:3px solid #ff9900;max-width:480px;width:90%;padding:28px;position:relative;">
+    <button onclick="closePenModal()" style="position:absolute;top:14px;right:14px;background:none;border:none;color:#8f8f9c;font-size:22px;cursor:pointer;">✕</button>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;text-transform:uppercase;color:#ff9900;margin-bottom:4px;">Issue Penalty</div>
+    <div id="penModalIncInfo" style="font-size:12px;color:#8f8f9c;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #2e2e3e;"></div>
+    <div style="margin-bottom:10px;">
+      <label style="font-size:10px;letter-spacing:.12em;color:#8f8f9c;text-transform:uppercase;display:block;margin-bottom:5px;font-weight:700;">Penalty Type</label>
+      <select id="penModalType" style="width:100%;background:#15151e;border:1px solid #2e2e3e;color:#fff;padding:8px 12px;font-size:13px;outline:none;">
+        <option>Time Penalty</option><option>Grid Penalty</option><option>Drive-Through</option><option>Reprimand</option><option>DSQ</option>
+      </select>
+    </div>
+    <div style="margin-bottom:10px;">
+      <label style="font-size:10px;letter-spacing:.12em;color:#8f8f9c;text-transform:uppercase;display:block;margin-bottom:5px;font-weight:700;">Penalty Value</label>
+      <input id="penModalVal" type="text" placeholder="e.g. 5 seconds" style="width:100%;background:#15151e;border:1px solid #2e2e3e;color:#fff;padding:8px 12px;font-size:13px;outline:none;"/>
+    </div>
+    <div id="penModalErr" style="color:#ff4444;font-size:12px;margin-bottom:10px;display:none;"></div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button onclick="submitPenalty()" style="flex:1;background:#ff9900;color:#000;border:none;padding:11px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;">✅ Issue Penalty</button>
+      <button onclick="closePenModal()" style="background:none;border:1px solid #2e2e3e;color:#8f8f9c;padding:11px 20px;cursor:pointer;font-family:'Titillium Web',sans-serif;font-size:13px;">Cancel</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
