@@ -92,6 +92,8 @@ main{flex:1;overflow-y:auto;padding:28px;}
     <a class="sb-link active" onclick="showPage('overview')"><span class="ico">⚖️</span>Overview</a>
     <a class="sb-link" onclick="showPage('incidents')"><span class="ico">⚠️</span>All Incidents</a>
     <a class="sb-link" onclick="showPage('penalties')"><span class="ico">🚫</span>Penalties Issued</a>
+    <div class="sb-section">Investigations</div>
+    <a class="sb-link" onclick="showPage('raise-investigation')"><span class="ico">🔍</span>Raise Investigation</a>
     <div class="sb-section">Transactions (Task 6)</div>
     <a class="sb-link" onclick="showPage('txn-incident')"><span class="ico">⚡</span>Raise Incident+Penalty</a>
 
@@ -130,6 +132,66 @@ main{flex:1;overflow-y:auto;padding:28px;}
         <strong>N:N Relationship:</strong> INCIDENT ↔ DRIVER via PENALTY junction table — each incident can result in penalties for multiple drivers, and each driver can accumulate penalties across many incidents.
       </div>
       <div id="allPenaltiesContainer"></div>
+    </div>
+
+    <!-- RAISE INVESTIGATION -->
+    <div class="page" id="page-raise-investigation">
+      <div class="sec-head"><h2 class="sec-title">Raise <em>Investigation</em></h2><div class="sec-line"></div></div>
+      <div class="db-banner"><div class="db-dot"></div>Creates a new INCIDENT record — no penalty issued yet. Review and act from Open Investigations.</div>
+
+      <div style="max-width:620px;">
+        <div style="background:rgba(255,153,0,.06);border:1px solid rgba(255,153,0,.2);border-left:4px solid var(--accent);padding:12px 16px;margin-bottom:20px;font-size:13px;color:rgba(255,255,255,.7);">
+          Use this form to open a new investigation. The incident will appear in <strong>Open Investigations</strong> where you can later dismiss it or issue a penalty after review.
+        </div>
+
+        <div class="card" style="background:var(--panel);border:1px solid var(--border);padding:24px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+            <div class="txn-field">
+              <label class="txn-label">Session (Race)</label>
+              <select class="txn-select" id="ri_session"></select>
+            </div>
+            <div class="txn-field">
+              <label class="txn-label">Driver Involved</label>
+              <select class="txn-select" id="ri_driver">
+                <option value="">— Unknown / No specific driver —</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:80px 1fr;gap:14px;margin-bottom:14px;">
+            <div class="txn-field">
+              <label class="txn-label">Lap No.</label>
+              <input class="txn-input" type="number" id="ri_lap" value="1" min="1"/>
+            </div>
+            <div class="txn-field">
+              <label class="txn-label">Severity</label>
+              <select class="txn-select" id="ri_severity">
+                <option value="Low">Low — Minor infringement, under review</option>
+                <option value="Medium" selected>Medium — Significant incident, investigation opened</option>
+                <option value="High">High — Major incident, immediate investigation</option>
+              </select>
+            </div>
+          </div>
+          <div class="txn-field" style="margin-bottom:20px;">
+            <label class="txn-label">Incident Description</label>
+            <textarea id="ri_desc" placeholder="Describe the incident in detail — what happened, where, which cars were involved…"
+              style="width:100%;background:#15151e;border:1px solid #2e2e3e;color:#fff;padding:10px 12px;font-family:'Titillium Web',sans-serif;font-size:13px;outline:none;resize:vertical;min-height:80px;line-height:1.5;"></textarea>
+          </div>
+          <div id="ri_feedback" style="display:none;padding:10px 14px;border-radius:2px;margin-bottom:14px;font-size:13px;font-weight:600;"></div>
+          <button onclick="raiseInvestigation()" id="ri_btn"
+            style="background:var(--accent);color:#000;border:none;padding:12px 32px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:15px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;clip-path:polygon(0 0,95% 0,100% 50%,95% 100%,0 100%);transition:opacity .2s;">
+            🔍 Open Investigation
+          </button>
+          <button onclick="clearRaiseForm()"
+            style="background:none;border:1px solid var(--border);color:var(--grey);padding:12px 22px;cursor:pointer;font-family:'Titillium Web',sans-serif;font-size:13px;margin-left:10px;">
+            Clear
+          </button>
+        </div>
+
+        <div style="background:var(--panel);border:1px solid var(--border);padding:16px;margin-top:16px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;color:#fff;margin-bottom:10px;">Recent Investigations Opened</div>
+          <div id="ri_recent" style="font-size:12px;color:var(--grey);">Submit a new investigation to see it here</div>
+        </div>
+      </div>
     </div>
 
     <!-- TXN: INCIDENT + PENALTY -->
@@ -311,8 +373,20 @@ function renderAllPenalties(){
 }
 
 function populateTxnDropdowns(){
-  document.getElementById('txn2_session').innerHTML=DB.sessions.map(s=>`<option value="${s.SessionID}">${s.SessionType} — Session #${s.SessionID}</option>`).join('');
-  document.getElementById('txn2_driver').innerHTML=DB.drivers.map(d=>`<option value="${d.DriverID}">${d.flag} ${d.FirstName} ${d.LastName} (#${d.DriverNumber})</option>`).join('');
+  const raceSessOpts=DB.sessions.filter(s=>s.SessionType==='Race').map(s=>{
+    const w=DB.weekends.find(x=>x.WeekendID===s.WeekendID);
+    return`<option value="${s.SessionID}">${w?w.flag+' '+w.name:s.SessionType+' #'+s.SessionID}</option>`;
+  }).join('');
+  const driverOpts=DB.drivers.map(d=>`<option value="${d.DriverID}">${d.flag} ${d.FirstName} ${d.LastName} (#${d.DriverNumber})</option>`).join('');
+
+  // TXN2 dropdowns
+  const t2s=document.getElementById('txn2_session');if(t2s)t2s.innerHTML=raceSessOpts;
+  const t2d=document.getElementById('txn2_driver');if(t2d)t2d.innerHTML=driverOpts;
+
+  // Raise Investigation dropdowns
+  const ris=document.getElementById('ri_session');if(ris)ris.innerHTML=raceSessOpts;
+  const rid=document.getElementById('ri_driver');
+  if(rid)rid.innerHTML='<option value="">— Unknown / No specific driver —</option>'+driverOpts;
 }
 
 // TXN 2 — Incident + Penalty (real MySQL transaction)
@@ -428,6 +502,73 @@ function showToast(msg,color='#27f4d2'){
   t.style.cssText='position:fixed;bottom:24px;right:24px;z-index:99999;padding:12px 22px;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:14px;letter-spacing:.1em;text-transform:uppercase;background:'+color+';color:'+(color==='#27f4d2'?'#000':'#fff')+';clip-path:polygon(0 0,95% 0,100% 50%,95% 100%,0 100%);box-shadow:0 4px 20px rgba(0,0,0,.5);';
   t.textContent=msg;document.body.appendChild(t);
   setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .4s';setTimeout(()=>t.remove(),400);},3000);
+}
+
+
+// ── RAISE INVESTIGATION ────────────────────────────────────────────
+async function raiseInvestigation(){
+  const sessID = document.getElementById('ri_session')?.value;
+  const driverID = document.getElementById('ri_driver')?.value||null;
+  const lap = Number(document.getElementById('ri_lap')?.value)||1;
+  const severity = document.getElementById('ri_severity')?.value||'Medium';
+  const desc = document.getElementById('ri_desc')?.value?.trim();
+  const fb = document.getElementById('ri_feedback');
+
+  if(!sessID){
+    fb.style.cssText='display:block;background:rgba(255,68,68,.12);border-left:3px solid #ff4444;color:#ff4444;';
+    fb.textContent='⚠ Please select a session.'; return;
+  }
+  if(!desc){
+    fb.style.cssText='display:block;background:rgba(255,68,68,.12);border-left:3px solid #ff4444;color:#ff4444;';
+    fb.textContent='⚠ Please enter an incident description.'; return;
+  }
+
+  const btn=document.getElementById('ri_btn');
+  btn.disabled=true; btn.textContent='⏳ Submitting…';
+  fb.style.display='none';
+
+  try{
+    const payload={SessionID:Number(sessID),LapNo:lap,Description:desc,Severity:severity};
+    if(driverID) payload.DriverID=Number(driverID);
+    const result = await apiFetch('/incidents',{method:'POST',body:JSON.stringify(payload)});
+
+    fb.style.cssText='display:block;background:rgba(39,244,210,.08);border-left:3px solid #27f4d2;color:#27f4d2;';
+    fb.textContent='✅ Investigation #'+result.id+' opened — it now appears in Open Investigations for review.';
+
+    // Update recent list
+    const w=DB.weekends.find(x=>x.WeekendID===DB.sessions.find(s=>s.SessionID===Number(sessID))?.WeekendID);
+    const d=DB.drivers.find(x=>x.DriverID===Number(driverID));
+    const recentEl=document.getElementById('ri_recent');
+    const entry=document.createElement('div');
+    entry.style.cssText='padding:8px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:12px;';
+    const sevColor=severity==='High'?'#ff4444':severity==='Medium'?'#ff9900':'#27f4d2';
+    entry.innerHTML=`<span style="font-weight:700;color:${sevColor}">${severity}</span>
+      <span style="color:#fff;">${w?w.flag+' '+w.name:''} · Lap ${lap}</span>
+      <span style="color:var(--grey);flex:1">${desc.substring(0,60)}${desc.length>60?'…':''}</span>
+      <span style="color:var(--grey)">Investigation #${result.id}</span>`;
+    if(recentEl.textContent.includes('Submit'))recentEl.innerHTML='';
+    recentEl.insertBefore(entry,recentEl.firstChild);
+
+    // Clear form
+    document.getElementById('ri_desc').value='';
+    document.getElementById('ri_lap').value='1';
+    document.getElementById('ri_severity').value='Medium';
+
+    // Reload DB data so new investigation appears in Open Investigations
+    await loadAll();
+
+  }catch(e){
+    fb.style.cssText='display:block;background:rgba(255,68,68,.12);border-left:3px solid #ff4444;color:#ff4444;';
+    fb.textContent='❌ Error: '+(e.data?.error||e.message);
+  }
+  btn.disabled=false; btn.textContent='🔍 Open Investigation';
+}
+
+function clearRaiseForm(){
+  document.getElementById('ri_desc').value='';
+  document.getElementById('ri_lap').value='1';
+  document.getElementById('ri_severity').value='Medium';
+  const fb=document.getElementById('ri_feedback');if(fb)fb.style.display='none';
 }
 
 loadAll().catch(e=>console.error('Load error:',e));

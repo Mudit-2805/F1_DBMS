@@ -331,6 +331,7 @@ async function loadOverview(){
 const TRIGGER_INFO={
   trg_no_duplicate_driver_number:{label:'T1 — Unique Driver Number',desc:'Fires BEFORE INSERT on DRIVER. Raises SQLSTATE 45000 if the DriverNumber already exists — prevents two drivers sharing a race number.',table:'DRIVER',event:'BEFORE INSERT',num:1},
   trg_auto_contract_end_date:{label:'T2 — Auto End Date',desc:'Fires BEFORE INSERT on DRIVER_CONTRACT. If EndDate is NULL, automatically sets it to StartDate + 1 YEAR.',table:'DRIVER_CONTRACT',event:'BEFORE INSERT',num:2},
+  trg_no_duplicate_contract:{label:'T3 — No Duplicate Contract',desc:'Fires BEFORE INSERT on DRIVER_CONTRACT. Raises SQLSTATE 45000 if the driver already has an existing contract row — prevents a driver being signed to two teams simultaneously.',table:'DRIVER_CONTRACT',event:'BEFORE INSERT',num:3},
 };
 
 async function loadTriggers(){

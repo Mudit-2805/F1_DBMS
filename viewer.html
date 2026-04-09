@@ -259,16 +259,22 @@ async function loadAll() {
 }
 
 function renderSchedule() {
-  const today=new Date();
+  // Next race = first race session with no lap time data in DB
+  const completedSIDs=new Set(DB.lapTimes.map(l=>l.SessionID));
+  const raceSessions=DB.sessions.filter(s=>s.SessionType==='Race');
+  const nextSess=raceSessions.find(s=>!completedSIDs.has(s.SessionID));
+  const nextWID=nextSess?nextSess.WeekendID:null;
   const sorted=[...DB.weekends].map(w=>({...w,_d:new Date(w.EndDate)})).sort((a,b)=>a._d-b._d);
-  const nextIdx=sorted.findIndex(w=>w._d>=today);
-  document.getElementById('scheduleGrid').innerHTML=sorted.map((w,i)=>`
-    <div class="race-card ${i===nextIdx?'next':''}" onclick="showWeekendModal(${w.WeekendID})">
+  document.getElementById('scheduleGrid').innerHTML=sorted.map((w)=>{
+    const isNext=w.WeekendID===nextWID;
+    const completed=raceSessions.some(s=>s.WeekendID===w.WeekendID&&completedSIDs.has(s.SessionID));
+    return`<div class="race-card ${isNext?'next':''}" onclick="showWeekendModal(${w.WeekendID})" style="${completed?'opacity:.75':''}">
       <span class="rc-flag">${w.flag}</span>
       <div class="rc-name">${w.name}</div>
       <div class="rc-circuit">${(w.circuit||'').split(',')[0]}</div>
-      <div class="rc-date">📅 ${fmtDate(w.EndDate)}</div>
-    </div>`).join('');
+      <div class="rc-date">${completed?'✅':'📅'} ${fmtDate(w.EndDate)}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderStandings(){
