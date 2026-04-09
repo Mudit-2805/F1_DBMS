@@ -320,21 +320,61 @@ function renderTeams() {
   }).join('');
 }
 
-function renderResults() {
-  const races=DB.sessions.filter(s=>s.SessionType==='Race');
-  if(!races.length){document.getElementById('resultsContainer').innerHTML='<div style="color:var(--grey);padding:40px;text-align:center;border:1px dashed var(--border)">🏁 Race results will appear after Round 1 — 22 Mar 2026</div>';return;}
-  document.getElementById('resultsContainer').innerHTML=races.map(s=>{
-    const w=DB.weekends.find(x=>x.WeekendID===s.WeekendID);
-    const sessLaps=DB.lapTimes.filter(l=>l.SessionID===s.SessionID);
-    const dLaps={};sessLaps.forEach(l=>{dLaps[l.DriverID]=(dLaps[l.DriverID]||0)+1;});
-    const top3=Object.entries(dLaps).sort((a,b)=>b[1]-a[1]).slice(0,3);
-    return`<div style="background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--red);padding:18px 22px;margin-bottom:10px;display:grid;grid-template-columns:56px 1fr auto;gap:18px;align-items:center;">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:32px;color:rgba(255,255,255,.1);text-align:center;">${String(w?.WeekendID||'').padStart(2,'0')}</div>
-      <div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;text-transform:uppercase;color:#fff;margin-bottom:4px;">${w?.flag||''} ${w?.name||'Race'}</div>
-        <div style="display:flex;gap:14px;margin-top:6px;">${top3.map(([did],i)=>{const d=DB.drivers.find(x=>x.DriverID==did);const medals=['#ffd700','#c0c0c0','#cd7f32'];return`<div style="display:flex;align-items:center;gap:6px;"><div style="width:20px;height:20px;border-radius:50%;background:${medals[i]};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#000;">${i+1}</div><span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.8)">${d?.LastName||'—'}</span></div>`;}).join('')}</div>
+function renderResults(){
+  const PTS_SCALE=[25,18,15,12,10,8,6,4,2,1];
+  // Only show races that have actual results (WeekendID maps 1:1 to F1_2025 race number)
+  const completedRaces=DB.sessions.filter(s=>s.SessionType==='Race'&&F1_2025[DB.weekends.find(w=>w.WeekendID===s.WeekendID)?.WeekendID]);
+  if(!completedRaces.length){
+    document.getElementById('resultsContainer').innerHTML='<div style="color:var(--grey);padding:40px;text-align:center;border:1px dashed var(--border)">🏁 Race results will appear after Round 1</div>';
+    return;
+  }
+  document.getElementById('resultsContainer').innerHTML=completedRaces.map(sess=>{
+    const w=DB.weekends.find(x=>x.WeekendID===sess.WeekendID);
+    const results=F1_2025[w.WeekendID]; // [p1_driverID, p2, ..., p10] — exact finishing order
+    if(!results||!results.length)return'';
+    const medals=['#FFD700','#C0C0C0','#CD7F32'];
+    return`<div style="background:var(--panel);border:1px solid var(--border);margin-bottom:16px;overflow:hidden;">
+      <div style="display:grid;grid-template-columns:60px 1fr auto;align-items:center;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:34px;color:rgba(255,255,255,.1);text-align:center;">${String(w.WeekendID).padStart(2,'0')}</div>
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;text-transform:uppercase;color:#fff;margin-bottom:4px;">${w.flag} ${w.name}</div>
+          <div style="font-size:11px;color:var(--grey);">${w.circuit?.split(',')[0]||''} · ${fmtDate(w.EndDate)}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:10px;letter-spacing:.1em;color:var(--grey);text-transform:uppercase;margin-bottom:4px;">Winner</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;color:#FFD700;">${(()=>{const d=DB.drivers.find(x=>x.DriverID===results[0]);return d?d.flag+' '+d.LastName:'—';})()}</div>
+        </div>
       </div>
-      <div style="font-size:12px;color:var(--grey);text-align:right;">${fmtDate(s.SessionStartTime)}</div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="background:#1a1a26;">
+          <th style="padding:8px 12px;text-align:left;font-size:10px;letter-spacing:.1em;color:var(--grey);text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;font-weight:700;width:44px;">Pos</th>
+          <th style="padding:8px 12px;text-align:left;font-size:10px;letter-spacing:.1em;color:var(--grey);text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;font-weight:700;">#</th>
+          <th style="padding:8px 12px;text-align:left;font-size:10px;letter-spacing:.1em;color:var(--grey);text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;font-weight:700;">Driver</th>
+          <th style="padding:8px 12px;text-align:left;font-size:10px;letter-spacing:.1em;color:var(--grey);text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;font-weight:700;">Team</th>
+          <th style="padding:8px 12px;text-align:right;font-size:10px;letter-spacing:.1em;color:var(--grey);text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;font-weight:700;">Points</th>
+        </tr></thead>
+        <tbody>${results.map((dID,i)=>{
+          const d=DB.drivers.find(x=>x.DriverID===dID);
+          const c=DB.contracts.find(x=>x.DriverID===dID);
+          const t=c?DB.teams.find(x=>x.TeamID===c.TeamID):null;
+          const pos=i+1;const pts=PTS_SCALE[i]||0;
+          const posStyle=pos<=3?`color:${medals[i]};`:'color:var(--grey);';
+          return`<tr style="border-bottom:1px solid var(--border);" onmouseover="this.style.background='rgba(255,255,255,.025)'" onmouseout="this.style.background=''">
+            <td style="padding:10px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;${posStyle}">${pos}${pos<=3?'':'.'}</td>
+            <td style="padding:10px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:rgba(255,255,255,.3);">${d?.DriverNumber||''}</td>
+            <td style="padding:10px 12px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:3px;height:28px;background:${t?t.color:'#666'};border-radius:2px;flex-shrink:0;"></div>
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:#fff;">${d?d.flag+' '+d.FirstName+' '+d.LastName:'—'}</div>
+                </div>
+              </div>
+            </td>
+            <td style="padding:10px 12px;font-size:12px;color:var(--grey);">${t?t.TeamName.split(' ').slice(0,2).join(' '):'—'}</td>
+            <td style="padding:10px 12px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:${pts>0?'#fff':'var(--grey)'};">${pts>0?pts:'—'}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
     </div>`;
   }).join('');
 }
