@@ -386,8 +386,19 @@ async function loadTable(resource, label, groupByRace=false){
   try{
     _rows=await apiFetch('/'+resource);
     if(groupByRace){
-      const [sessions,weekends]=await Promise.all([apiFetch('/sessions'),apiFetch('/race_weekends')]);
-      renderGrouped(el,_rows,sessions,weekends);
+      const fetches=[apiFetch('/sessions'),apiFetch('/race_weekends')];
+      // Penalties have no SessionID — resolve it via INCIDENT join
+      if(resource==='penalties') fetches.push(apiFetch('/incidents'));
+      const [sessions,weekends,incidents]=await Promise.all(fetches);
+      let displayRows=_rows;
+      if(resource==='penalties'&&incidents){
+        // Attach SessionID from the linked incident so race-grouping works
+        displayRows=_rows.map(p=>{
+          const inc=incidents.find(i=>i.IncidentID===p.IncidentID);
+          return Object.assign({},p,{SessionID:inc?inc.SessionID:null});
+        });
+      }
+      renderGrouped(el,displayRows,sessions,weekends);
     }else{
       renderFlat(el,_rows);
     }
