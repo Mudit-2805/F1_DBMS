@@ -332,6 +332,7 @@ const TRIGGER_INFO={
   trg_no_duplicate_driver_number:{label:'T1 — Unique Driver Number',desc:'Fires BEFORE INSERT on DRIVER. Raises SQLSTATE 45000 if the DriverNumber already exists — prevents two drivers sharing a race number.',table:'DRIVER',event:'BEFORE INSERT',num:1},
   trg_auto_contract_end_date:{label:'T2 — Auto End Date',desc:'Fires BEFORE INSERT on DRIVER_CONTRACT. If EndDate is NULL, automatically sets it to StartDate + 1 YEAR.',table:'DRIVER_CONTRACT',event:'BEFORE INSERT',num:2},
   trg_no_duplicate_contract:{label:'T3 — No Duplicate Contract',desc:'Fires BEFORE INSERT on DRIVER_CONTRACT. Raises SQLSTATE 45000 if the driver already has an existing contract row — prevents a driver being signed to two teams simultaneously.',table:'DRIVER_CONTRACT',event:'BEFORE INSERT',num:3},
+  trg_protect_active_contract:{label:'T4 — Protect Active Contract',desc:'Fires BEFORE UPDATE on DRIVER_CONTRACT. Raises SQLSTATE 45000 if the existing EndDate >= today — prevents anyone from modifying an active contract. The contract must expire first.',table:'DRIVER_CONTRACT',event:'BEFORE UPDATE',num:4},
 };
 
 async function loadTriggers(){
@@ -383,6 +384,16 @@ async function loadTable(resource, label, groupByRace=false){
 
   const el=document.getElementById('crudContent');
   el.innerHTML='<div style="padding:30px;text-align:center;color:#8f8f9c;">Loading from MySQL…</div>';
+  // For contracts: show active contract info banner
+  if(resource==='driver_contracts'){
+    const banner=document.createElement('div');
+    banner.id='contractStatusBanner';
+    banner.style.cssText='background:rgba(39,244,210,.06);border:1px solid rgba(39,244,210,.2);border-left:4px solid #27f4d2;padding:10px 14px;font-size:12px;color:rgba(255,255,255,.7);margin-bottom:12px;';
+    banner.innerHTML='🟢 <strong style="color:#27f4d2">Active contracts</strong> (EndDate ≥ today) are <strong>protected</strong> — Edit and Delete are blocked. 🔴 <strong style="color:#ff4444">Expired contracts</strong> can be modified freely.';
+    el.parentNode.insertBefore(banner,el);
+  } else {
+    const old=document.getElementById('contractStatusBanner');if(old)old.remove();
+  }
 
   try{
     _rows=await apiFetch('/'+resource);

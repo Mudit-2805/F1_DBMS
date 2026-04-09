@@ -104,6 +104,20 @@ BEGIN
 END
 """,
     },
+    4: {
+        "name": "trg_protect_active_contract",
+        "sql": """
+CREATE TRIGGER trg_protect_active_contract
+BEFORE UPDATE ON DRIVER_CONTRACT
+FOR EACH ROW
+BEGIN
+  IF OLD.EndDate >= CURDATE() THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'T4 BLOCKED: Contract is currently active and cannot be modified. Wait until the contract expires or remove it first.';
+  END IF;
+END
+""",
+    },
 }
 
 # ── User role definitions ──────────────────────────────────────────
@@ -272,6 +286,7 @@ def create(resource):
 
 @app.route("/api/<resource>/<int:row_id>", methods=["PUT"])
 def update(resource, row_id):
+    """Update an existing row by primary key."""
     if resource not in RESOURCES:
         return jsonify({"error": "Unknown resource"}), 404
     table, pk = RESOURCES[resource]
@@ -281,6 +296,27 @@ def update(resource, row_id):
     data = {k: (None if v == "" else v) for k, v in data.items()}
     if not data:
         return jsonify({"error": "No data provided"}), 400
+
+    # Block updates on active driver contracts
+    if resource == "driver_contracts":
+        try:
+            conn_chk = get_db()
+            cur_chk  = conn_chk.cursor(dictionary=True)
+            cur_chk.execute(
+                "SELECT EndDate, CASE WHEN EndDate >= CURDATE() THEN 1 ELSE 0 END AS is_active "
+                "FROM DRIVER_CONTRACT WHERE ContractID = %s", (row_id,)
+            )
+            chk = cur_chk.fetchone()
+            conn_chk.close()
+            if chk and chk.get("is_active"):
+                return jsonify({
+                    "error": f"BLOCKED: This contract is ACTIVE until {chk['EndDate']}. "
+                             f"Active contracts cannot be modified. "
+                             f"Wait for it to expire or delete it first."
+                }), 403
+        except MySQLError:
+            pass
+
     set_clause = ", ".join(f"`{k}` = %s" for k in data)
     vals = list(data.values()) + [row_id]
     try:
@@ -294,11 +330,32 @@ def update(resource, row_id):
         return jsonify({"error": mysql_error_msg(exc)}), 400
 
 
-@app.route("/api/<resource>/<int:row_id>", methods=["DELETE"])
 def delete(resource, row_id):
+    """Delete a row by primary key."""
     if resource not in RESOURCES:
         return jsonify({"error": "Unknown resource"}), 404
     table, pk = RESOURCES[resource]
+
+    # Block deletion of active driver contracts
+    if resource == "driver_contracts":
+        try:
+            conn_chk = get_db()
+            cur_chk  = conn_chk.cursor(dictionary=True)
+            cur_chk.execute(
+                "SELECT EndDate, CASE WHEN EndDate >= CURDATE() THEN 1 ELSE 0 END AS is_active "
+                "FROM DRIVER_CONTRACT WHERE ContractID = %s", (row_id,)
+            )
+            chk = cur_chk.fetchone()
+            conn_chk.close()
+            if chk and chk.get("is_active"):
+                return jsonify({
+                    "error": f"BLOCKED: This contract is ACTIVE until {chk['EndDate']}. "
+                             f"Active contracts cannot be deleted. "
+                             f"The contract must expire before removal."
+                }), 403
+        except MySQLError:
+            pass
+
     try:
         conn = get_db()
         cur  = conn.cursor()
@@ -308,6 +365,7 @@ def delete(resource, row_id):
         return jsonify({"success": True})
     except MySQLError as exc:
         return jsonify({"error": mysql_error_msg(exc)}), 400
+
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -406,13 +464,29 @@ def txn_sign_driver():
             raise ValueError(f"TeamID={team_id} not found in TEAM table")
         steps.append(step(2, f"SELECT … FOR UPDATE: Team '{team['TeamName']}' — lock acquired"))
 
-        # Step 3 — delete existing contracts for this driver
+        # Step 3 — check if existing contract is still active
+        cur.execute(
+            "SELECT ContractID, EndDate, "
+            "CASE WHEN EndDate >= CURDATE() THEN 1 ELSE 0 END AS is_active "
+            "FROM DRIVER_CONTRACT WHERE DriverID = %s ORDER BY ContractID DESC LIMIT 1",
+            (driver_id,)
+        )
+        existing = cur.fetchone()
+        if existing and existing.get("is_active"):
+            end_d = existing["EndDate"]
+            raise ValueError(
+                f"BLOCKED: Driver #{driver_id} has an ACTIVE contract until {end_d}. "
+                f"Active contracts cannot be overridden. Wait for it to expire or remove it first."
+            )
+        steps.append(step(3, f"Contract status check — {'no active contract, proceeding' if not existing else 'contract expired, proceeding'}"))
+
+        # Step 4 — delete existing (expired) contracts for this driver
         cur.execute("DELETE FROM DRIVER_CONTRACT WHERE DriverID = %s", (driver_id,))
         deleted = cur.rowcount
-        steps.append(step(3, f"DELETE FROM DRIVER_CONTRACT WHERE DriverID={driver_id} "
+        steps.append(step(4, f"DELETE FROM DRIVER_CONTRACT WHERE DriverID={driver_id} "
                              f"— {deleted} row(s) removed"))
 
-        # Step 4 — insert new contract
+        # Step 5 — insert new contract
         cur.execute(
             "INSERT INTO DRIVER_CONTRACT (DriverID, TeamID, StartDate, EndDate) "
             "VALUES (%s, %s, %s, %s)",
@@ -424,13 +498,13 @@ def txn_sign_driver():
         cur.execute("SELECT * FROM DRIVER_CONTRACT WHERE ContractID = %s", (new_id,))
         saved = serialize(cur.fetchone())
         t2_fired = end_date is None and saved and saved.get("EndDate") is not None
-        steps.append(step(4, f"INSERT DRIVER_CONTRACT #{new_id}: "
+        steps.append(step(5, f"INSERT DRIVER_CONTRACT #{new_id}: "
                              f"DriverID={driver_id} → TeamID={team_id}, "
                              f"EndDate={saved.get('EndDate')}"
                              + (" [T2 fired: EndDate auto-set]" if t2_fired else "")))
 
         conn.commit()
-        steps.append(step(5, "COMMIT — all changes persisted to MySQL"))
+        steps.append(step(6, "COMMIT — all changes persisted to MySQL"))
 
         return jsonify({
             "success":   True,
@@ -799,6 +873,75 @@ def analytics_summary():
 # ═══════════════════════════════════════════════════════════════════
 #  HEALTH CHECK
 # ═══════════════════════════════════════════════════════════════════
+
+
+@app.route("/api/contracts/status/<int:driver_id>", methods=["GET"])
+def contract_status(driver_id):
+    """
+    Returns the active contract status for a driver.
+    active: true  — EndDate >= today, contract is live, changes blocked
+    active: false — no contract or EndDate < today, changes allowed
+    """
+    try:
+        conn = get_db()
+        cur  = conn.cursor(dictionary=True)
+        cur.execute("""
+            SELECT ContractID, TeamID, StartDate, EndDate,
+                   CASE WHEN EndDate >= CURDATE() THEN 1 ELSE 0 END AS is_active,
+                   DATEDIFF(EndDate, CURDATE()) AS days_remaining
+            FROM DRIVER_CONTRACT
+            WHERE DriverID = %s
+            ORDER BY ContractID DESC
+            LIMIT 1
+        """, (driver_id,))
+        row = cur.fetchone()
+        conn.close()
+        if not row:
+            return jsonify({"has_contract": False, "active": False, "message": "No contract found — driver is free to sign"})
+        is_active = bool(row["is_active"])
+        days = row["days_remaining"] or 0
+        return jsonify({
+            "has_contract":   True,
+            "active":         is_active,
+            "contract_id":    row["ContractID"],
+            "team_id":        row["TeamID"],
+            "start_date":     serialize(row["StartDate"]),
+            "end_date":       serialize(row["EndDate"]),
+            "days_remaining": days,
+            "message": (
+                f"Contract ACTIVE — {days} day(s) remaining. Modifications blocked."
+                if is_active else
+                f"Contract EXPIRED — ended {abs(days)} day(s) ago. New contract can be created."
+            )
+        })
+    except MySQLError as exc:
+        return jsonify({"error": mysql_error_msg(exc)}), 500
+
+
+@app.route("/api/contracts/all_status", methods=["GET"])
+def all_contract_status():
+    """Returns active/expired status for all drivers with contracts."""
+    try:
+        conn = get_db()
+        cur  = conn.cursor(dictionary=True)
+        cur.execute("""
+            SELECT dc.ContractID, dc.DriverID, dc.TeamID,
+                   d.FirstName, d.LastName, d.DriverNumber, d.flag,
+                   t.TeamName, t.color,
+                   dc.StartDate, dc.EndDate,
+                   CASE WHEN dc.EndDate >= CURDATE() THEN 1 ELSE 0 END AS is_active,
+                   DATEDIFF(dc.EndDate, CURDATE()) AS days_remaining
+            FROM DRIVER_CONTRACT dc
+            JOIN DRIVER d ON d.DriverID = dc.DriverID
+            JOIN TEAM   t ON t.TeamID   = dc.TeamID
+            ORDER BY dc.DriverID
+        """)
+        rows = cur.fetchall()
+        conn.close()
+        return jsonify(serialize(rows))
+    except MySQLError as exc:
+        return jsonify({"error": mysql_error_msg(exc)}), 500
+
 
 @app.route("/api/health", methods=["GET"])
 def health():

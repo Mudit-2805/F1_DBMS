@@ -236,31 +236,62 @@ async function loadAll(){
 function renderRoster(){
   document.getElementById('teamRoster').innerHTML=DB.teams.map(t=>{
     const tc=DB.contracts.filter(c=>c.TeamID===t.TeamID);
-    const td=tc.map(c=>DB.drivers.find(d=>d.DriverID===c.DriverID)).filter(Boolean);
     const cars=DB.cars.filter(c=>c.TeamID===t.TeamID);
     return`<div class="team-box"><div class="tb-accent" style="background:${t.color}"></div>
       <div class="tb-header"><div class="tb-logo">${t.emoji}</div>
         <div><div class="tb-name">${t.TeamName.split(' ').slice(0,2).join(' ')}</div><div class="tb-base">${t.BaseCountry}</div></div>
       </div>
-      ${td.map(d=>{const c=tc.find(x=>x.DriverID===d.DriverID);return`<div class="driver-row">
-        <span class="dr-flag">${d.flag}</span><span class="dr-name">${d.FirstName} ${d.LastName}</span>
-        <span class="dr-num" style="color:${t.color}">#${d.DriverNumber}</span>
-      </div><div style="font-size:10px;color:#27f4d2;padding-bottom:4px;border-bottom:1px solid var(--border);" class="contract-badge">Contract: ${c?c.StartDate:''} → ${c?c.EndDate:''}</div>`;}).join('')}
-      ${td.length===0?'<div style="font-size:12px;color:var(--grey);padding:4px 0;">No contracted drivers</div>':''}
+      ${tc.map(c=>{
+        const d=DB.drivers.find(x=>x.DriverID===c.DriverID);
+        if(!d)return'';
+        const today=new Date(); today.setHours(0,0,0,0);
+        const endDate=c.EndDate?new Date(c.EndDate):null;
+        const isActive=endDate&&endDate>=today;
+        const daysLeft=endDate?Math.ceil((endDate-today)/(1000*60*60*24)):0;
+        const statusBadge=isActive
+          ?`<span style="font-size:9px;font-weight:700;letter-spacing:.08em;padding:2px 7px;background:rgba(39,244,210,.12);color:#27f4d2;border:1px solid rgba(39,244,210,.3);">🟢 ACTIVE · ${daysLeft}d left</span>`
+          :`<span style="font-size:9px;font-weight:700;letter-spacing:.08em;padding:2px 7px;background:rgba(255,68,68,.12);color:#ff4444;border:1px solid rgba(255,68,68,.3);">🔴 EXPIRED</span>`;
+        return`<div class="driver-row">
+          <span class="dr-flag">${d.flag}</span>
+          <div style="flex:1">
+            <span class="dr-name" style="display:block">${d.FirstName} ${d.LastName}</span>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
+              ${statusBadge}
+              <span style="font-size:10px;color:var(--grey);">${c.StartDate||''} → ${c.EndDate||'?'}</span>
+            </div>
+          </div>
+          <span class="dr-num" style="color:${t.color}">#${d.DriverNumber}</span>
+        </div>`;
+      }).join('')}
+      ${tc.length===0?'<div style="font-size:12px;color:var(--grey);padding:4px 0;">No contracted drivers</div>':''}
       <div style="margin-top:10px;font-size:11px;color:var(--grey);">Cars: ${cars.map(c=>c.ChassisCode).join(', ')||'—'}</div>
     </div>`;
   }).join('');
 }
 
 function renderContractsTable(){
-  document.getElementById('contractsTable').innerHTML=`<table class="data-table"><thead><tr><th>ContractID (PK)</th><th>DriverID (FK)</th><th>Driver</th><th>TeamID (FK)</th><th>Team</th><th>Start Date</th><th>End Date</th></tr></thead><tbody>
-    ${DB.contracts.map(c=>{const d=DB.drivers.find(x=>x.DriverID===c.DriverID);const t=DB.teams.find(x=>x.TeamID===c.TeamID);
-      return`<tr><td style="color:var(--accent);font-weight:700">#${c.ContractID}</td>
+  const today=new Date();today.setHours(0,0,0,0);
+  document.getElementById('contractsTable').innerHTML=`<table class="data-table"><thead>
+    <tr><th>ContractID (PK)</th><th>DriverID (FK)</th><th>Driver</th><th>TeamID (FK)</th><th>Team</th><th>Start Date</th><th>End Date</th><th>Status</th></tr>
+    </thead><tbody>
+    ${DB.contracts.map(c=>{
+      const d=DB.drivers.find(x=>x.DriverID===c.DriverID);
+      const t=DB.teams.find(x=>x.TeamID===c.TeamID);
+      const endDate=c.EndDate?new Date(c.EndDate):null;
+      const isActive=endDate&&endDate>=today;
+      const daysLeft=endDate?Math.ceil((endDate-today)/(1000*60*60*24)):0;
+      return`<tr>
+        <td style="color:var(--accent);font-weight:700">#${c.ContractID}</td>
         <td style="color:#3671C6;font-weight:700">${c.DriverID}</td>
         <td>${d?d.flag+' '+d.FirstName+' '+d.LastName:'?'}</td>
         <td style="color:#3671C6;font-weight:700">${c.TeamID}</td>
         <td>${t?t.emoji+' '+t.TeamName.split(' ').slice(0,2).join(' '):'?'}</td>
-        <td>${c.StartDate||'—'}</td><td style="color:#27f4d2">${c.EndDate||'—'}</td></tr>`;
+        <td>${c.StartDate||'—'}</td>
+        <td style="color:${isActive?'#27f4d2':'#ff9900'}">${c.EndDate||'—'}</td>
+        <td>${isActive
+          ?`<span style="font-size:9px;font-weight:700;padding:2px 8px;background:rgba(39,244,210,.12);color:#27f4d2;border:1px solid rgba(39,244,210,.3);">🟢 ACTIVE · ${daysLeft}d left</span>`
+          :`<span style="font-size:9px;font-weight:700;padding:2px 8px;background:rgba(255,68,68,.12);color:#ff4444;border:1px solid rgba(255,68,68,.3);">🔴 EXPIRED</span>`}
+        </td></tr>`;
     }).join('')}</tbody></table>`;
 }
 
@@ -276,12 +307,20 @@ function renderCarsTable(){
 
 function renderCurrentContracts(){
   const el=document.getElementById('currentContracts');if(!el)return;
-  el.innerHTML=DB.contracts.map(c=>{const d=DB.drivers.find(x=>x.DriverID===c.DriverID);const t=DB.teams.find(x=>x.TeamID===c.TeamID);
-    return`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;">
-      <span style="font-size:16px;">${d?d.flag:'?'}</span>
-      <span style="color:#fff;flex:1;">${d?d.FirstName+' '+d.LastName:'?'}</span>
-      <span style="color:var(--accent);font-size:11px;">→</span>
-      <span style="color:var(--grey);">${t?t.TeamName.split(' ').slice(0,2).join(' '):'?'}</span>
+  const today=new Date();today.setHours(0,0,0,0);
+  el.innerHTML=DB.contracts.map(c=>{
+    const d=DB.drivers.find(x=>x.DriverID===c.DriverID);
+    const t=DB.teams.find(x=>x.TeamID===c.TeamID);
+    const endDate=c.EndDate?new Date(c.EndDate):null;
+    const isActive=endDate&&endDate>=today;
+    const daysLeft=endDate?Math.ceil((endDate-today)/(1000*60*60*24)):0;
+    return`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;flex-wrap:wrap;">
+      <span style="font-size:16px">${d?d.flag:'?'}</span>
+      <span style="color:#fff;flex:1;font-weight:600">${d?d.FirstName+' '+d.LastName:'?'}</span>
+      <span style="color:var(--grey);font-size:11px">→ ${t?t.TeamName.split(' ').slice(0,2).join(' '):'?'}</span>
+      ${isActive
+        ?`<span style="font-size:9px;padding:2px 7px;background:rgba(39,244,210,.12);color:#27f4d2;border:1px solid rgba(39,244,210,.3);">🟢 ${daysLeft}d</span>`
+        :`<span style="font-size:9px;padding:2px 7px;background:rgba(255,68,68,.12);color:#ff4444;border:1px solid rgba(255,68,68,.3);">🔴 EXPIRED</span>`}
     </div>`;}).join('');
 }
 
@@ -292,10 +331,22 @@ function populateDropdowns(){
 
 // TXN 1 — Sign Driver
 async function runTxn1(){
+  const driverID=Number(document.getElementById('txn1_driver').value);
+  // Pre-check contract status before sending to server
+  try{
+    const status=await apiFetch('/contracts/status/'+driverID);
+    if(status.active){
+      document.getElementById('txn1_log').innerHTML='';
+      txnLog('txn1_log','🔴 BLOCKED: '+status.message,'err');
+      renderSteps('txn1_steps',[{status:'error',msg:'Contract is ACTIVE — cannot re-sign until '+status.end_date+' ('+status.days_remaining+' days remaining)'}]);
+      return;
+    }
+  }catch(e){/* continue if check fails */}
+
   setBtn('txn1_btn',true);document.getElementById('txn1_log').innerHTML='';
   try{
     const r=await apiFetch('/txn/sign_driver',{method:'POST',body:JSON.stringify({
-      driver_id:Number(document.getElementById('txn1_driver').value),
+      driver_id:driverID,
       team_id:Number(document.getElementById('txn1_team').value),
       start_date:document.getElementById('txn1_start').value,
       end_date:document.getElementById('txn1_end').value||null,
