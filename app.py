@@ -35,7 +35,7 @@ CORS(app, supports_credentials=True)
 DB_CONFIG = {
     "host":     "localhost",
     "user":     "root",
-    "password": "MySQL@12345",   # ← change to your MySQL password
+    "password": "sanju",   # ← change to your MySQL password
     "database": "grand_prix_hub",
     "charset":  "utf8mb4",
 }
